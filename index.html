@@ -14,34 +14,30 @@
     --card:#1a2235; --head:#121a2b; --line:#293148;
     --up:#22c55e; --down:#ef4444; --chip:#111827;
     --max:980px;
-    --fz:13px;         /* móvil */
-    --fz-h:14px;       /* pantallas más anchas */
-    --pady:6px;        /* padding vertical de celdas móvil */
-    --padx:8px;        /* padding horizontal de celdas móvil */
+    --fz:13px; --fz-h:14px; --pady:6px; --padx:8px;
   }
   @media (min-width:430px){
     :root{ --fz:var(--fz-h); --pady:7px; --padx:10px; }
   }
-
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui, -apple-system, Arial, sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Arial,sans-serif}
   header{padding:22px 12px 8px;text-align:center}
   .logoWrap{display:inline-grid;place-items:center;width:72px;height:72px;border-radius:50%;
-    margin:0 auto 6px; background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));}
+    margin:0 auto 6px;background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0))}
   .logo{width:64px;height:64px;border-radius:50%;object-fit:contain;filter:brightness(1.25) contrast(1.12)}
   h1{margin:4px 0 2px;font-size:36px;letter-spacing:.4px}
   .sub{color:var(--muted);margin:0 0 2px}
   .upd{color:#9aa3b2;font-size:12px;margin:2px 0 16px}
   header::after{content:"";display:block;height:1px;width:92%;margin:10px auto;background:
     linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 60px} /* + espacio para barra sticky */
 
-  .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 24px}
   table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:12px;overflow:hidden}
   thead th{background:var(--head);color:#cfd5ff;font-weight:700;padding:10px var(--padx);font-size:var(--fz)}
   tbody td{padding:var(--pady) var(--padx);border-top:1px solid var(--line);font-size:var(--fz)}
   tr:nth-child(even){background:#141c2e}
 
-  /* Layout columnas */
+  /* columnas fijas: sin scroll lateral */
   .col-name{width:52%}
   .col-price{width:22%; text-align:right}
   .col-pct{width:13%; text-align:center}
@@ -50,11 +46,28 @@
   .sym{margin-left:6px;color:#cbd5e1;font-size:12px}
   .mc{display:block;color:#9fb0d3;font-size:12px;margin-top:3px}
 
+  .num{font-variant-numeric:tabular-nums}
   .chip{display:inline-block;padding:3px 8px;border-radius:999px;background:var(--chip);
         font-variant-numeric:tabular-nums;min-width:64px}
   .up{color:var(--up);background:rgba(34,197,94,.12)}
   .down{color:var(--down);background:rgba(239,68,68,.12)}
-  .num{font-variant-numeric:tabular-nums}
+
+  /* Barra sticky */
+  .sticky-bar{
+    position:sticky;
+    bottom:0;
+    background:var(--head);
+    border-top:1px solid var(--line);
+    text-align:center;
+    padding:12px 8px;
+    font-size:14px;
+    color:#cfd5ff;
+    cursor:pointer;
+    user-select:none;
+    border-bottom-left-radius:12px;
+    border-bottom-right-radius:12px;
+  }
+  .sticky-bar:hover{filter:brightness(1.05)}
 
   footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
 </style>
@@ -79,25 +92,26 @@
     </thead>
     <tbody id="rows"><tr><td colspan="4" style="text-align:center;padding:14px">Cargando…</td></tr></tbody>
   </table>
+  <div id="morebar" class="sticky-bar">MORE <small>(+5)</small></div>
 </div>
 
 <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
 <script>
-  // --------- Formatters ----------
   const nfUSD0 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
   const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
   const nfUSD6 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
   const nfPct  = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const nfMC   = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2});
 
-  // --------- Exclusiones (stables / derivados) ----------
   const EXCLUDE_IDS = new Set([
     "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
     "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
   ]);
 
-  // --------- Render ----------
+  let FULL = [];
+  let visibleCount = 10;
+
   function fmtPrice(v){
     if (v == null) return "—";
     if (v >= 1000) return nfUSD0.format(v);
@@ -107,8 +121,7 @@
   function chip(v){
     if (typeof v !== "number") return `<span class="chip">—</span>`;
     const cls = v >= 0 ? "chip up" : "chip down";
-    const s = nfPct.format(v) + "%";
-    return `<span class="${cls}">${s}</span>`;
+    return `<span class="${cls}">${nfPct.format(v)}%</span>`;
   }
 
   async function load(){
@@ -116,45 +129,65 @@
       const res = await fetch("data/snapshot.json?ts=" + Date.now(), {cache:"no-store"});
       const j   = await res.json();
 
-      // hora remota del JSON
-      const last = j.updated_at || j.timestamp || null;
-      document.getElementById("upd").textContent = last ? new Date(last).toLocaleString() : "—";
+      document.getElementById("upd").textContent =
+        (j.updated_at||j.timestamp) ? new Date(j.updated_at||j.timestamp).toLocaleString() : "—";
 
-      // lista completa -> filtra excluidos -> ordena por MC desc -> top 10
-      const list = Object.values(j.assets || {})
+      FULL = Object.values(j.assets||{})
         .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
-        .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0))
-        .slice(0, 10);
+        .sort((a,b)=> (b.market_cap??0) - (a.market_cap??0));
 
-      const tbody = document.getElementById("rows");
-      tbody.innerHTML = "";
-
-      for (const x of list){
-        const name = x.name || (x.id||"").toUpperCase();
-        const sym  = (x.symbol || "").toUpperCase();
-        const price= fmtPrice(x.usd);
-        const c24  = chip(x.change_24h);
-        const c7   = chip(x.change_7d);
-        const mc   = x.market_cap != null ? nfMC.format(x.market_cap) : "—";
-
-        tbody.insertAdjacentHTML("beforeend", `
-          <tr>
-            <td class="col-name">
-              <div class="name"><strong>${name}</strong><span class="sym">(${sym})</span></div>
-              <span class="mc">· MC ${mc}</span>
-            </td>
-            <td class="col-price num">${price}</td>
-            <td class="col-pct">${c24}</td>
-            <td class="col-pct">${c7}</td>
-          </tr>
-        `);
-      }
+      visibleCount = 10;
+      render();
     }catch(e){
       console.error(e);
       document.getElementById("rows").innerHTML =
         `<tr><td colspan="4" style="text-align:center;padding:14px">Error al cargar</td></tr>`;
     }
   }
+
+  function render(){
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+
+    const list = FULL.slice(0, visibleCount);
+
+    for (const x of list){
+      const name = x.name || (x.id||"").toUpperCase();
+      const sym  = (x.symbol||"").toUpperCase();
+      const price= fmtPrice(x.usd);
+      const c24  = chip(x.change_24h);
+      const c7   = chip(x.change_7d);
+      const mc   = x.market_cap!=null ? nfMC.format(x.market_cap) : "—";
+
+      tbody.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td class="col-name">
+            <div class="name"><strong>${name}</strong><span class="sym">(${sym})</span></div>
+            <span class="mc">· MC ${mc}</span>
+          </td>
+          <td class="col-price num">${price}</td>
+          <td class="col-pct">${c24}</td>
+          <td class="col-pct">${c7}</td>
+        </tr>
+      `);
+    }
+
+    const mb = document.getElementById("morebar");
+    if (visibleCount >= FULL.length){
+      mb.textContent = "LESS (top-10)";
+    } else {
+      mb.innerHTML = `MORE <small>(+5)</small>`;
+    }
+  }
+
+  document.getElementById("morebar").addEventListener("click", ()=>{
+    if (visibleCount >= FULL.length){
+      visibleCount = 10;
+    } else {
+      visibleCount = Math.min(visibleCount + 5, FULL.length);
+    }
+    render();
+  });
 
   document.getElementById("y").textContent = new Date().getFullYear();
   load();
