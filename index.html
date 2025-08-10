@@ -4,83 +4,86 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>iXO · Cripto Monitor</title>
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0f1624">
-  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="32x32">
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="32x32" />
 
   <style>
     :root{
-      --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
+      --bg:#0f172a; --card:#162033; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
       --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
     }
     *{box-sizing:border-box}
     html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    header{padding:16px 0 4px;text-align:center}
-    .logo-wrap{display:inline-grid;place-items:center;width:84px;height:84px;margin:0 auto 6px;border-radius:50%;
-      background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), transparent);
-      box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);}
-    .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-    .title{font-size:2rem;font-weight:800;margin:2px 0 0}
-    .subtitle{font-size:.9rem;color:var(--muted);margin:1px 0 6px}
-    .update-time{color:#9aa3b2;font-size:.78rem;margin:0 0 10px}
+    header{padding:14px 0 2px;text-align:center}
+    .logo-wrap{width:78px;height:78px;margin:0 auto 6px;border-radius:50%;
+      display:grid;place-items:center;background:radial-gradient(100px circle at 50% 45%, rgba(255,255,255,.06), transparent)}
+    .logo{width:72px;height:72px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+    .title{font-size:1.9rem;font-weight:800;margin:2px 0 0}
+    .subtitle{font-size:.85rem;color:var(--muted);margin:0 0 6px}
+    .update-time{font-size:.74rem;color:#9aa3b2;margin:0 0 10px}
 
     .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 16px}
-    .table-card{background:var(--card);border-radius:12px;overflow:hidden}
+    .card{background:var(--card);border-radius:12px;overflow:hidden}
     table{width:100%;border-collapse:collapse;table-layout:fixed}
-    thead th{background:var(--head);color:#d2dbff}
-    th,td{padding:8px 6px;text-align:left;border-top:1px solid var(--line);font-size:13.5px;line-height:1.15}
+    thead th{background:var(--head);color:#d2dbff;font-weight:700}
+    th,td{padding:7px 6px;border-top:1px solid var(--line);font-size:12px;line-height:1.15}
+    tr:nth-child(even){background:#131c2e}
+
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-
     .name{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .asset-line{display:flex;gap:6px;align-items:baseline;min-width:0}
-    .asset-line strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+    .topline{display:flex;gap:6px;align-items:baseline;min-width:0}
+    .topline strong{min-width:0;overflow:hidden;text-overflow:clip;white-space:nowrap}
     .symbol{opacity:.95;font-weight:600;font-size:.9em;white-space:nowrap}
-    .mc-inline{color:#aab3d1;font-size:12px;opacity:.95;white-space:nowrap}
-    .price-inline{display:none;color:#e6ecff; font-variant-numeric:tabular-nums;}
+    .mc{font-size:11px;color:#aab3d1;opacity:.95;white-space:nowrap}
+    .price-inline{display:none;color:#e6ecff}
 
-    .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
+    .chip{display:inline-block;padding:3px 6px;border-radius:999px;font-weight:700;font-size:10px;white-space:nowrap}
     .up{color:var(--up);background:rgba(34,197,94,.12)}
     .down{color:var(--down);background:rgba(239,68,68,.12)}
     .chips-row{display:flex;gap:6px;justify-content:flex-end}
-    .chips-col{display:none;gap:6px;flex-direction:column;align-items:flex-end}
+    .chips-col{display:none;gap:4px;flex-direction:column;align-items:flex-end}
 
     .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:11px;cursor:pointer;
       user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
     .morebar small{opacity:.8;font-weight:400}
-    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:14px}
+    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:12px}
 
-    /* desktop / tablet */
-    thead th.col-asset{width:40%}
-    thead th.col-price{width:32%}
-    thead th.col-24h{width:14%}
-    thead th.col-7d{width:14%}
+    /* anchos desktop/tablet */
+    thead th.col-asset{width:44%}
+    thead th.col-price{width:30%}
+    thead th.col-24h{width:13%}
+    thead th.col-7d{width:13%}
 
-    /* Móvil: precio debajo del nombre; 24h y 7d apilados a la derecha */
-    @media (max-width:480px){
-      th,td{padding:8px 6px;font-size:13px}
+    /* móvil ≤ 430px (iPhone 16e): precio bajo el nombre; 24h y 7d en vertical a la derecha */
+    @media (max-width:430px){
+      th,td{padding:6px 5px;font-size:11px}
+      .symbol{font-size:.85em}
+      .mc{font-size:10px}
+      .chip{font-size:9.5px;padding:2px 5px}
+
       thead th.col-price{display:none}
       td.td-price{display:none}
-      thead th.col-24h{width:26%}
-      thead th.col-7d{display:none}
-      .price-inline{display:block;font-size:12.5px;opacity:.95}
+
+      .price-inline{display:block;font-variant-numeric:tabular-nums}
       .chips-row{display:none}
       .chips-col{display:flex}
+      thead th.col-24h{width:28%}
+      thead th.col-7d{display:none}
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-wrap">
-      <img src="assets/A.PNG?v=6" alt="iXO" class="logo" />
+      <img src="assets/A.PNG?v=7" alt="iXO" class="logo" />
     </div>
     <h1 class="title">iXO</h1>
     <p class="subtitle">Cripto · Monitor</p>
-    <p class="update-time" id="update-time">Última actualización: —</p>
+    <p class="update-time" id="last">Última actualización: —</p>
   </header>
 
   <div class="wrap">
-    <div class="table-card">
+    <div class="card">
       <table>
         <thead>
           <tr>
@@ -91,9 +94,7 @@
           </tr>
         </thead>
         <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
-        <tfoot>
-          <tr><td colspan="4" id="morebar" class="morebar">MORE <small>(mostrar todos)</small></td></tr>
-        </tfoot>
+        <tfoot><tr><td colspan="4" id="morebar" class="morebar">MORE <small>(mostrar todos)</small></td></tr></tfoot>
       </table>
     </div>
   </div>
@@ -101,19 +102,21 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    // ==== helpers ====
+    // ------- formateadores -------
+    const nfUSD0 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
     const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
-    const nfPct  = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
     const nfCap  = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
-    const pct = v => (typeof v === 'number') ? nfPct.format(v)+'%' : '—';
-    function formatPrice(v){
+    const nfPct  = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    function fmtPrice(v){
       if (v == null) return '—';
-      if (Math.abs(v) >= 1) return nfUSD2.format(v);           // ≥1 -> 2 dec
-      let s = v.toFixed(4).replace(/0+$/,'').replace(/\.$/,''); // <1 -> 4 dec
+      if (Math.abs(v) >= 1000) return nfUSD0.format(v);
+      if (Math.abs(v) >= 1)    return nfUSD2.format(v);
+      let s = Number(v).toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
       return '$'+s;
     }
+    const pct = v => (typeof v==='number') ? nfPct.format(v)+'%' : '—';
 
-    // Filtro stables y derivados
+    // ------- filtro stables/derivados -------
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -121,42 +124,38 @@
     function shouldExcludeRaw(c){
       const id=(c.id||"").toLowerCase(), name=(c.name||"").toLowerCase(), sym=(c.symbol||"").toLowerCase();
       if (EXCLUDE_IDS.has(id)) return true;
-      if (/(wrapped|weth|rether|cbeth|frxeth|sfrxeth|staked|stake|liquid[-\s]?stak)/i.test(id+name)) return true;
-      if (/(stablecoin|usd$|^usd|usd[-\s]|^usdt$|^usdc$|^usdd$|^usdp$|^busd$|^gusd$)/i.test(id+name+sym)) return true;
+      if (/(wrapped|weth|staked|liquid[-\s]?stak|cbeth|frxeth|sfrxeth)/i.test(id+name)) return true;
+      if (/(stablecoin|^usd|usd$|usd[-\s]|^usdt$|^usdc$|^usdd$|^usdp$|^busd$|^gusd$)/i.test(id+name+sym)) return true;
       return false;
     }
 
-    // Estado
-    let FULL_LIST = [];
+    // ------- estado -------
+    let FULL = [];
     let expanded = false;
 
-    // Data desde CoinGecko
-    async function fetchFromCoinGecko(){
-      const url = 'https://api.coingecko.com/api/v3/coins/markets'
-        + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
-        + '&price_change_percentage=24h,7d';
-      const res = await fetch(url, { cache: 'no-store', headers:{ accept:'application/json' }});
-      if(!res.ok) throw new Error('CG HTTP '+res.status);
-      return await res.json();
-    }
-    function mapItem(c){
-      return {
-        id: c.id, name: c.name, symbol: (c.symbol||'').toUpperCase(),
-        usd: c.current_price ?? null,
-        change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
-        change_7d:  c.price_change_percentage_7d_in_currency  ?? null,
-        market_cap: c.market_cap ?? null
-      };
-    }
-
+    // ------- fetch CoinGecko -------
     async function load(){
       try{
-        const arr = await fetchFromCoinGecko();
-        FULL_LIST = arr.filter(x=>!shouldExcludeRaw(x))
-                       .map(mapItem)
-                       .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));
-        document.getElementById('update-time').textContent =
+        const url = 'https://api.coingecko.com/api/v3/coins/markets'
+          + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
+          + '&sparkline=false&price_change_percentage=24h,7d';
+        const r = await fetch(url,{cache:'no-store',headers:{accept:'application/json'}});
+        if(!r.ok) throw new Error('CG '+r.status);
+        const data = await r.json();
+
+        FULL = data.filter(x=>!shouldExcludeRaw(x))
+                   .map(c=>({
+                      id:c.id, name:c.name, symbol:(c.symbol||'').toUpperCase(),
+                      price:c.current_price ?? null,
+                      mc:c.market_cap ?? null,
+                      ch24:c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+                      ch7: c.price_change_percentage_7d_in_currency ?? null
+                    }))
+                   .sort((a,b)=>(b.mc??0)-(a.mc??0));
+
+        document.getElementById('last').textContent =
           'Última actualización: ' + new Date().toLocaleString();
+
         render();
       }catch(e){
         console.error(e);
@@ -167,37 +166,35 @@
     function render(){
       const tbody = document.getElementById('rows');
       tbody.innerHTML = '';
-      const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
 
-      const isMobile = window.matchMedia('(max-width:480px)').matches;
+      const list = expanded ? FULL : FULL.slice(0,10);
+      const isMobile = matchMedia('(max-width:430px)').matches;
 
       for (const x of list){
-        const price = formatPrice(x.usd);
-        const p24   = pct(x.change_24h);
-        const p7    = pct(x.change_7d);
-        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0?'up':'down') : '';
-        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0?'up':'down') : '';
-        const mcS   = x.market_cap!=null ? nfCap.format(x.market_cap) : '—';
+        const mcS = x.mc!=null ? nfCap.format(x.mc) : '—';
+        const price = fmtPrice(x.price);
+        const p24 = pct(x.ch24);
+        const p7  = pct(x.ch7);
+        const cls24 = (typeof x.ch24==='number') ? (x.ch24>=0?'up':'down') : '';
+        const cls7  = (typeof x.ch7 ==='number') ? (x.ch7 >=0?'up':'down') : '';
 
-        // precio inline (solo móvil)
         const priceInline = isMobile ? `<div class="price-inline">${price}</div>` : '';
 
         tbody.insertAdjacentHTML('beforeend', `
           <tr>
             <td>
               <div class="name">
-                <div class="asset-line">
-                  <strong>${x.name || x.id}</strong>
-                  <span class="symbol">(${x.symbol || ''})</span>
-                  <span class="mc-inline">· MC ${mcS}</span>
+                <div class="topline">
+                  <strong>${x.name}</strong>
+                  <span class="symbol">(${x.symbol})</span>
                 </div>
+                <div class="mc">· MC ${mcS}</div>
                 ${priceInline}
               </div>
             </td>
 
             <td class="num td-price">${price}</td>
 
-            <!-- En móvil mostramos ambos chips en vertical en esta celda -->
             <td class="num">
               <div class="chips-row">
                 <span class="chip ${cls24}" title="24h">${p24}</span>
@@ -209,29 +206,25 @@
               </div>
             </td>
 
-            <!-- En desktop mantenemos columna 7d separada -->
             <td class="num td-7d"><span class="chip ${cls7}" title="7d">${p7}</span></td>
           </tr>
         `);
       }
 
       const mb = document.getElementById('morebar');
-      if (FULL_LIST.length <= 10) {
-        mb.textContent = '—';
-        mb.style.cursor = 'default';
-        mb.style.opacity = .6;
+      if (FULL.length <= 10){
+        mb.textContent = '—'; mb.style.opacity=.6; mb.style.cursor='default';
       } else {
         mb.innerHTML = expanded ? 'LESS <small>(mostrar top-10)</small>' : 'MORE <small>(mostrar todos)</small>';
-        mb.style.cursor = 'pointer';
-        mb.style.opacity = 1;
+        mb.style.opacity=1; mb.style.cursor='pointer';
       }
     }
 
     document.getElementById('morebar').addEventListener('click', ()=>{
-      if (FULL_LIST.length <= 10) return;
+      if (FULL.length<=10) return;
       expanded = !expanded;
       render();
-      if (!expanded) document.getElementById('morebar').scrollIntoView({ behavior:'smooth', block:'center' });
+      if(!expanded) document.getElementById('morebar').scrollIntoView({behavior:'smooth',block:'center'});
     });
 
     document.getElementById('y').textContent = new Date().getFullYear();
