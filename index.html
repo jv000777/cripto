@@ -31,15 +31,14 @@
     th,td{padding:8px 6px;border-top:1px solid var(--line);font-size:12px;line-height:1.2}
     tr:nth-child(even){background:#131c2e}
 
-    /* Columnas bien definidas para que no se monten */
     thead th.col-asset{width:46%}
     thead th.col-price{width:24%}
     thead th.col-24h{width:15%}
     thead th.col-7d{width:15%}
 
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-    .name{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .topline{display:flex;gap:6px;align-items:baseline;min-width:0}
+    .name{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center}
+    .topline{display:flex;gap:6px;align-items:baseline;justify-content:center;min-width:0}
     .topline strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .symbol{opacity:.95;font-weight:600;font-size:.9em;white-space:nowrap}
     .mc{font-size:11px;color:#aab3d1;opacity:.95;white-space:nowrap}
@@ -53,7 +52,6 @@
     .morebar small{opacity:.8;font-weight:400}
     footer{color:#9aa3b2;font-size:12px;text-align:center;padding:12px}
 
-    /* iPhone (≤ 430px): letras y chips un pelín más chicos para que quepa todo */
     @media (max-width:430px){
       th,td{padding:7px 5px;font-size:11px}
       .symbol{font-size:.85em}
@@ -96,7 +94,6 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    // -------- formateadores --------
     const nfUSD0 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
     const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
     const nfCap  = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
@@ -110,7 +107,6 @@
     }
     const pct = v => (typeof v==='number') ? nfPct.format(v)+'%' : '—';
 
-    // -------- filtro stables/derivados --------
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -123,11 +119,9 @@
       return false;
     }
 
-    // -------- estado --------
     let FULL = [];
     let expanded = false;
 
-    // -------- fetch CoinGecko --------
     async function load(){
       try{
         const url = 'https://api.coingecko.com/api/v3/coins/markets'
