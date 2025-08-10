@@ -14,68 +14,62 @@
     }
     *{box-sizing:border-box}
     html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    header{padding:14px 0 2px;text-align:center}
-    .logo-wrap{width:78px;height:78px;margin:0 auto 6px;border-radius:50%;
+
+    header{padding:16px 0 6px;text-align:center}
+    .logo-wrap{width:78px;height:78px;margin:0 auto 8px;border-radius:50%;
       display:grid;place-items:center;background:radial-gradient(100px circle at 50% 45%, rgba(255,255,255,.06), transparent)}
     .logo{width:72px;height:72px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-    .title{font-size:1.9rem;font-weight:800;margin:2px 0 0}
-    .subtitle{font-size:.85rem;color:var(--muted);margin:0 0 6px}
-    .update-time{font-size:.74rem;color:#9aa3b2;margin:0 0 10px}
+    .title{font-size:2rem;font-weight:800;margin:2px 0 0}
+    .subtitle{font-size:.9rem;color:var(--muted);margin:0 0 6px}
+    .update-time{font-size:.78rem;color:#9aa3b2;margin:0 0 12px}
 
-    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 16px}
-    .card{background:var(--card);border-radius:12px;overflow:hidden}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 18px}
+    .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.04) inset}
+
     table{width:100%;border-collapse:collapse;table-layout:fixed}
-    thead th{background:var(--head);color:#d2dbff;font-weight:700}
-    th,td{padding:7px 6px;border-top:1px solid var(--line);font-size:12px;line-height:1.15}
+    thead th{background:var(--head);color:#d2dbff;font-weight:700;border-bottom:1px solid var(--line)}
+    th,td{padding:8px 6px;border-top:1px solid var(--line);font-size:12px;line-height:1.2}
     tr:nth-child(even){background:#131c2e}
+
+    /* Columnas bien definidas para que no se monten */
+    thead th.col-asset{width:46%}
+    thead th.col-price{width:24%}
+    thead th.col-24h{width:15%}
+    thead th.col-7d{width:15%}
 
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     .name{display:flex;flex-direction:column;gap:4px;min-width:0}
     .topline{display:flex;gap:6px;align-items:baseline;min-width:0}
-    .topline strong{min-width:0;overflow:hidden;text-overflow:clip;white-space:nowrap}
+    .topline strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .symbol{opacity:.95;font-weight:600;font-size:.9em;white-space:nowrap}
     .mc{font-size:11px;color:#aab3d1;opacity:.95;white-space:nowrap}
-    .price-inline{display:none;color:#e6ecff}
 
     .chip{display:inline-block;padding:3px 6px;border-radius:999px;font-weight:700;font-size:10px;white-space:nowrap}
     .up{color:var(--up);background:rgba(34,197,94,.12)}
     .down{color:var(--down);background:rgba(239,68,68,.12)}
-    .chips-row{display:flex;gap:6px;justify-content:flex-end}
-    .chips-col{display:none;gap:4px;flex-direction:column;align-items:flex-end}
 
     .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:11px;cursor:pointer;
-      user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
+      user-select:none;text-align:center;font-weight:600}
     .morebar small{opacity:.8;font-weight:400}
     footer{color:#9aa3b2;font-size:12px;text-align:center;padding:12px}
 
-    /* anchos desktop/tablet */
-    thead th.col-asset{width:44%}
-    thead th.col-price{width:30%}
-    thead th.col-24h{width:13%}
-    thead th.col-7d{width:13%}
-
-    /* móvil ≤ 430px (iPhone 16e): precio bajo el nombre; 24h y 7d en vertical a la derecha */
+    /* iPhone (≤ 430px): letras y chips un pelín más chicos para que quepa todo */
     @media (max-width:430px){
-      th,td{padding:6px 5px;font-size:11px}
+      th,td{padding:7px 5px;font-size:11px}
       .symbol{font-size:.85em}
       .mc{font-size:10px}
       .chip{font-size:9.5px;padding:2px 5px}
-
-      thead th.col-price{display:none}
-      td.td-price{display:none}
-
-      .price-inline{display:block;font-variant-numeric:tabular-nums}
-      .chips-row{display:none}
-      .chips-col{display:flex}
-      thead th.col-24h{width:28%}
-      thead th.col-7d{display:none}
+      thead th.col-asset{width:50%}
+      thead th.col-price{width:22%}
+      thead th.col-24h{width:14%}
+      thead th.col-7d{width:14%}
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-wrap">
-      <img src="assets/A.PNG?v=7" alt="iXO" class="logo" />
+      <img src="assets/A.PNG?v=8" alt="iXO" class="logo" />
     </div>
     <h1 class="title">iXO</h1>
     <p class="subtitle">Cripto · Monitor</p>
@@ -89,7 +83,7 @@
           <tr>
             <th class="col-asset">Activo / MC</th>
             <th class="num col-price">Precio (USD)</th>
-            <th class="num col-24h">24h / 7d</th>
+            <th class="num col-24h">24h</th>
             <th class="num col-7d">7d</th>
           </tr>
         </thead>
@@ -102,7 +96,7 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    // ------- formateadores -------
+    // -------- formateadores --------
     const nfUSD0 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
     const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
     const nfCap  = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
@@ -116,7 +110,7 @@
     }
     const pct = v => (typeof v==='number') ? nfPct.format(v)+'%' : '—';
 
-    // ------- filtro stables/derivados -------
+    // -------- filtro stables/derivados --------
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -129,11 +123,11 @@
       return false;
     }
 
-    // ------- estado -------
+    // -------- estado --------
     let FULL = [];
     let expanded = false;
 
-    // ------- fetch CoinGecko -------
+    // -------- fetch CoinGecko --------
     async function load(){
       try{
         const url = 'https://api.coingecko.com/api/v3/coins/markets'
@@ -163,53 +157,34 @@
       }
     }
 
+    function rowHTML(x){
+      const mcS = x.mc!=null ? nfCap.format(x.mc) : '—';
+      const price = fmtPrice(x.price);
+      const p24 = pct(x.ch24);
+      const p7  = pct(x.ch7);
+      const cls24 = (typeof x.ch24==='number') ? (x.ch24>=0?'up':'down') : '';
+      const cls7  = (typeof x.ch7==='number')  ? (x.ch7 >=0?'up':'down') : '';
+      return `
+        <tr>
+          <td>
+            <div class="name">
+              <div class="topline">
+                <strong title="${x.name}">${x.name}</strong>
+                <span class="symbol">(${x.symbol})</span>
+              </div>
+              <div class="mc">· MC ${mcS}</div>
+            </div>
+          </td>
+          <td class="num">${price}</td>
+          <td class="num"><span class="chip ${cls24}" title="24h">${p24}</span></td>
+          <td class="num"><span class="chip ${cls7}"  title="7d">${p7}</span></td>
+        </tr>`;
+    }
+
     function render(){
       const tbody = document.getElementById('rows');
-      tbody.innerHTML = '';
-
       const list = expanded ? FULL : FULL.slice(0,10);
-      const isMobile = matchMedia('(max-width:430px)').matches;
-
-      for (const x of list){
-        const mcS = x.mc!=null ? nfCap.format(x.mc) : '—';
-        const price = fmtPrice(x.price);
-        const p24 = pct(x.ch24);
-        const p7  = pct(x.ch7);
-        const cls24 = (typeof x.ch24==='number') ? (x.ch24>=0?'up':'down') : '';
-        const cls7  = (typeof x.ch7 ==='number') ? (x.ch7 >=0?'up':'down') : '';
-
-        const priceInline = isMobile ? `<div class="price-inline">${price}</div>` : '';
-
-        tbody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td>
-              <div class="name">
-                <div class="topline">
-                  <strong>${x.name}</strong>
-                  <span class="symbol">(${x.symbol})</span>
-                </div>
-                <div class="mc">· MC ${mcS}</div>
-                ${priceInline}
-              </div>
-            </td>
-
-            <td class="num td-price">${price}</td>
-
-            <td class="num">
-              <div class="chips-row">
-                <span class="chip ${cls24}" title="24h">${p24}</span>
-                <span class="chip ${cls7}"  title="7d">${p7}</span>
-              </div>
-              <div class="chips-col">
-                <span class="chip ${cls24}" title="24h">${p24}</span>
-                <span class="chip ${cls7}"  title="7d">${p7}</span>
-              </div>
-            </td>
-
-            <td class="num td-7d"><span class="chip ${cls7}" title="7d">${p7}</span></td>
-          </tr>
-        `);
-      }
+      tbody.innerHTML = list.map(rowHTML).join('');
 
       const mb = document.getElementById('morebar');
       if (FULL.length <= 10){
