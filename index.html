@@ -1,243 +1,171 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>iXO · Cripto Monitor</title>
-
-  <!-- PWA / Instalación -->
-  <meta name="theme-color" content="#0f1624" />
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <style>
-    :root{
-      --bg:#0f1624; --card:#141c2e; --head:#10182a; --muted:#aeb6cf; --ink:#fff;
-      --up:#22c55e; --down:#ef4444; --line:#23304a; --max:980px;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    body{padding-bottom:72px} /* espacio para botón flotante */
-    img{max-width:100%;display:block}
-    a{color:inherit}
-
-    header{padding:18px 16px 8px;text-align:center}
-    .logo-wrap{display:inline-grid;place-items:center;width:84px;height:84px;margin:0 auto 6px;border-radius:50%;
-      background:radial-gradient(100px circle at 50% 45%, rgba(255,255,255,.07), transparent);
-      box-shadow:0 8px 28px rgba(0,0,0,.35) inset, 0 8px 18px rgba(0,0,0,.25);}
-    .logo{width:76px;height:76px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-    .title{font-size: clamp(28px,5.5vw,36px); font-weight:800; letter-spacing:.2px; margin:6px 0 2px}
-    .subtitle{font-size:14px;color:var(--muted);margin:0 0 8px}
-    .update-time{color:#9aa3b2;font-size:12px;margin:2px 0 14px}
-
-    .wrap{max-width:var(--max);margin:0 auto;padding:0 12px 24px}
-    .table-card{background:var(--card);border-radius:12px;overflow:hidden}
-    table{width:100%;border-collapse:separate;border-spacing:0}
-    thead th{position:sticky;top:0;background:var(--head);z-index:1;color:#d2dbff}
-    th,td{padding:12px 10px}
-    th{font-weight:700;text-align:left}
-    td{border-top:1px solid var(--line)}
-    .name{display:flex;flex-direction:column;gap:2px}
-    .mc{font-size:12px;color:#aab3d1}
-    .num{text-align:right;font-variant-numeric:tabular-nums}
-    .up{color:var(--up);font-weight:700}
-    .down{color:var(--down);font-weight:700}
-
-    /* Mejoras táctiles */
-    @media (max-width:600px){
-      th,td{padding:14px 12px}
-      .mc{font-size:11px}
-    }
-
-    /* Barra MORE/LESS */
-    .morebar{width:100%; background:var(--head); color:#cfd5ff; padding:14px; cursor:pointer; user-select:none;
-      border-top:1px solid var(--line); text-align:center; font-weight:600}
-    .morebar:hover{filter:brightness(1.06)}
-    .morebar small{opacity:.8;font-weight:400}
-
-    /* Botón flotante “Instalar” */
-    .fab{
-      position:fixed; right:16px; bottom:16px; height:48px; padding:0 16px; border-radius:24px;
-      background:#1f2a44; color:#eaf0ff; display:inline-flex; align-items:center; gap:8px;
-      box-shadow:0 10px 25px rgba(0,0,0,.35); cursor:pointer; user-select:none; font-weight:600;
-    }
-    .fab svg{width:18px;height:18px}
-    .hidden{display:none}
-    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:18px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iXO - Cripto Monitor</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body {
+    background-color: #0b0e14;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    text-align: center;
+    padding: 20px;
+  }
+  header img {
+    width: 80px;
+    height: auto;
+    border-radius: 50%;
+  }
+  h1 {
+    margin: 10px 0 0 0;
+    font-size: 1.8em;
+  }
+  .subtitle {
+    color: #aaa;
+    margin-top: 4px;
+  }
+  .last-update {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 6px;
+  }
+  .wrap {
+    padding: 0 10px 20px;
+  }
+  .table-card {
+    background-color: #141823;
+    border-radius: 12px;
+    padding: 10px;
+    overflow: hidden;
+  }
+  /* NUEVO: scroll horizontal en móviles */
+  .table-scroller {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px; /* ancho mínimo para columnas completas */
+  }
+  th, td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #222;
+    white-space: nowrap;
+  }
+  th {
+    color: #ccc;
+    font-weight: 500;
+  }
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap; /* evita cortes */
+  }
+  .green {
+    color: #2ecc71;
+  }
+  .red {
+    color: #e74c3c;
+  }
+  @media (max-width: 430px) {
+    table { min-width: 600px; }
+    th, td { padding: 10px 8px; }
+  }
+  @media (max-width: 360px) {
+    table { min-width: 560px; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <div class="logo-wrap">
-      <!-- tu logo blanco/transparente -->
-      <img src="assets/A.PNG?v=3" alt="iXO" class="logo" />
-    </div>
-    <h1 class="title">iXO</h1>
-    <p class="subtitle">Cripto · Monitor</p>
-    <p class="update-time" id="update-time">Última actualización: —</p>
-  </header>
 
-  <div class="wrap">
-    <div class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Activo / <span style="color:#cfd5ff">MC</span></th>
-            <th class="num">Precio (USD)</th>
-            <th class="num">24h</th>
-            <th class="num">7d</th>
-          </tr>
-        </thead>
-        <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
-        <tfoot>
-          <tr><td colspan="4" id="morebar" class="morebar">MORE <small>(mostrar todos)</small></td></tr>
-        </tfoot>
-      </table>
-    </div>
+<header>
+  <img src="assets/A.PNG" alt="Logo iXO">
+  <h1>iXO</h1>
+  <div class="subtitle">Cripto · Monitor</div>
+  <div class="last-update" id="lastUpdate">Última actualización: --</div>
+</header>
+
+<div class="wrap">
+  <div class="table-card table-scroller">
+    <table id="cryptoTable">
+      <thead>
+        <tr>
+          <th>Activo / MC</th>
+          <th class="num">Precio (USD)</th>
+          <th class="num">24h</th>
+          <th class="num">7d</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
+</div>
 
-  <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
+<script>
+const API_URL = "https://api.coingecko.com/api/v3/coins/markets";
+const params = "?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h,7d";
 
-  <!-- Botón flotante instalar -->
-  <div id="installFab" class="fab hidden" role="button" aria-label="Instalar iXO">
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16l4-4h-3V4h-2v8H8l4 4zm-7 2h14v2H5v-2z"/></svg>
-    Instalar
-  </div>
+async function fetchData() {
+  try {
+    const res = await fetch(API_URL + params);
+    const data = await res.json();
+    renderTable(data);
+    document.getElementById("lastUpdate").textContent =
+      "Última actualización: " + new Date().toLocaleString();
+  } catch (err) {
+    console.error("Error al obtener datos:", err);
+  }
+}
 
-  <script>
-    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
-    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
-    const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
+function renderTable(data) {
+  const tbody = document.querySelector("#cryptoTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(coin => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>
+        <strong>${coin.name}</strong><br>
+        <small>MC: $${formatNumber(coin.market_cap)}</small>
+      </td>
+      <td class="num">$${formatPrice(coin.current_price)}</td>
+      <td class="num ${coin.price_change_percentage_24h >= 0 ? 'green':'red'}">
+        ${formatPercent(coin.price_change_percentage_24h)}
+      </td>
+      <td class="num ${coin.price_change_percentage_7d_in_currency >= 0 ? 'green':'red'}">
+        ${formatPercent(coin.price_change_percentage_7d_in_currency)}
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
 
-    // Excluir de la vista: stables y envueltos/derivados
-    const EXCLUDE_IDS = new Set([
-      "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
-      "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
-    ]);
+function formatNumber(num) {
+  if (num >= 1e12) return (num / 1e12).toFixed(2) + "T";
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+  return num.toLocaleString();
+}
 
-    let FULL_LIST = [];
-    let expanded = false;
+function formatPrice(price) {
+  return price >= 1 ? price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) :
+    price.toPrecision(4);
+}
 
-    async function fetchFromCoinGecko(){
-      const url = 'https://api.coingecko.com/api/v3/coins/markets'
-        + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
-        + '&price_change_percentage=24h,7d';
-      const res = await fetch(url, { cache: 'no-store', headers:{ accept:'application/json' }});
-      if(!res.ok) throw new Error('CG HTTP '+res.status);
-      const arr = await res.json();
-      return arr.map(c => ({
-        id: c.id,
-        name: c.name,
-        usd: c.current_price ?? null,
-        change_24h: c.price_change_percentage_24h_in_currency ?? null,
-        change_7d:  c.price_change_percentage_7d_in_currency  ?? null,
-        market_cap: c.market_cap ?? null
-      }));
-    }
+function formatPercent(pct) {
+  return (pct > 0 ? "+" : "") + pct.toFixed(2) + "%";
+}
 
-    async function load() {
-      try {
-        let list = await fetchFromCoinGecko();
-        list = list.filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
-                   .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
-        FULL_LIST = list;
-        document.getElementById('update-time').textContent =
-          'Última actualización: ' + new Date().toLocaleString();
-        render();
-      } catch (e) {
-        console.error(e);
-        document.getElementById('rows').innerHTML =
-          '<tr><td colspan="4">Error al cargar</td></tr>';
-      }
-    }
+fetchData();
+setInterval(fetchData, 60000);
+</script>
 
-    function render(){
-      const tbody = document.getElementById('rows');
-      tbody.innerHTML = '';
-      const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
-
-      for (const x of list) {
-        const price = x.usd != null ? nfUSD.format(x.usd) : '—';
-        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
-        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
-        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'up':'down') : '';
-        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'up':'down') : '';
-        const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
-        const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
-
-        tbody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td>
-              <div class="name">
-                <strong>${x.name || x.id}</strong>
-                <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
-              </div>
-            </td>
-            <td class="num">${price}</td>
-            <td class="num ${cls24}">${c24}</td>
-            <td class="num ${cls7}">${c7}</td>
-          </tr>
-        `);
-      }
-
-      const mb = document.getElementById('morebar');
-      if (FULL_LIST.length <= 10) {
-        mb.textContent = '—';
-        mb.style.cursor = 'default';
-        mb.style.opacity = .6;
-      } else {
-        mb.innerHTML = expanded ? 'LESS <small>(mostrar top-10)</small>' : 'MORE <small>(mostrar todos)</small>';
-        mb.style.cursor = 'pointer';
-        mb.style.opacity = 1;
-      }
-    }
-
-    document.getElementById('morebar').addEventListener('click', () => {
-      if (FULL_LIST.length <= 10) return;
-      expanded = !expanded;
-      render();
-      if (!expanded) document.getElementById('morebar').scrollIntoView({ behavior:'smooth', block:'center' });
-    });
-
-    document.getElementById('y').textContent = new Date().getFullYear();
-    load();
-    setInterval(load, 60000);
-    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
-
-    // --- Instalación como app ---
-    const fab = document.getElementById('installFab');
-    let deferredPrompt = null;
-
-    // Chrome/Edge (desktop y Android) – mostrar FAB cuando esté listo el prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      fab.classList.remove('hidden');
-    });
-
-    fab.addEventListener('click', async ()=>{
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-        fab.classList.add('hidden');
-      } else {
-        // iOS: mostrar ayuda (no hay prompt nativo)
-        alert('Para instalar en iPhone: Compartir → Añadir a pantalla de inicio.');
-      }
-    });
-
-    // iOS: mostrar FAB solo como ayuda (no existe beforeinstallprompt)
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isIOS && !isStandalone) {
-      fab.classList.remove('hidden');
-    }
-  </script>
 </body>
 </html>
