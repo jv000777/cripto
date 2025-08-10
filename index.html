@@ -17,58 +17,57 @@
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    header{padding:22px 0 6px;text-align:center}
-    .logo-wrap{display:inline-grid;place-items:center;width:92px;height:92px;margin:0 auto 8px;border-radius:50%;
+    header{padding:18px 0 4px;text-align:center}
+    .logo-wrap{display:inline-grid;place-items:center;width:84px;height:84px;margin:0 auto 6px;border-radius:50%;
       background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), transparent);
       box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);}
-    .logo{width:84px;height:84px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-    .title{font-size:2.3rem;font-weight:800;margin:4px 0 0}
-    .subtitle{font-size:.95rem;color:var(--muted);margin:2px 0 8px}
-    .update-time{color:#9aa3b2;font-size:.82rem;margin:2px 0 12px}
+    .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+    .title{font-size:2.1rem;font-weight:800;margin:2px 0 0}
+    .subtitle{font-size:.9rem;color:var(--muted);margin:1px 0 6px}
+    .update-time{color:#9aa3b2;font-size:.8rem;margin:0 0 10px}
 
-    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 22px}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 18px}
     .table-card{background:var(--card);border-radius:12px;overflow:hidden}
     table{width:100%;border-collapse:collapse;table-layout:fixed}
     thead th{background:var(--head);color:#d2dbff}
-    th,td{padding:10px 6px;text-align:left;border-top:1px solid var(--line)}
-    .name{display:flex;flex-direction:column;gap:2px}          /* ↓ menos espacio interno */
-    .asset-title{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
-    .symbol{opacity:.9;font-weight:600;font-size:.92em}        /* (BTC) */
-    .mc{font-size:12px;color:#aab3d1}
+    th,td{padding:8px 6px;text-align:left;border-top:1px solid var(--line);font-size:14px}
+    .name{display:flex;flex-direction:column;gap:2px}
+    .asset-line{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+    .symbol{opacity:.95;font-weight:600;font-size:.9em}
+    .mc-inline{color:#aab3d1;font-size:12px;opacity:.95}
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-    .chip{display:inline-block;padding:4px 7px;border-radius:999px;font-weight:700;font-size:13px;white-space:nowrap}
+
+    .chip{display:inline-block;padding:3px 7px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
     .up{color:var(--up);background:rgba(34,197,94,.12)}
     .down{color:var(--down);background:rgba(239,68,68,.12)}
-    .chip-7d{display:none;margin-left:6px}
+    .chips{display:flex;gap:6px;justify-content:flex-end}
 
-    .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:12px;cursor:pointer;
+    .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:11px;cursor:pointer;
       user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
     .morebar small{opacity:.8;font-weight:400}
-    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:16px}
+    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:14px}
 
-    /* anchos más compactos para dar aire al 7d */
-    thead th.col-asset{width:36%}
-    thead th.col-price{width:30%}
-    thead th.col-24h{width:16%}
-    thead th.col-7d{width:18%}
+    /* anchos: compacto para dejar aire a los % */
+    thead th.col-asset{width:38%}
+    thead th.col-price{width:34%}
+    thead th.col-24h{width:14%}
+    thead th.col-7d{width:14%}
 
-    /* MÓVIL */
+    /* MÓVIL: sin scroll lateral, 24h y 7d juntos en una celda */
     @media (max-width:480px){
       thead th{font-size:12px}
-      th,td{padding:9px 5px;font-size:13px}
-      .chip{font-size:12px;padding:2px 6px}
-      thead th.col-7d, td.td-7d{display:none}  /* oculto columna 7d */
-      .chip-7d{display:inline-block}          /* muestro 7d como chip al lado de 24h */
-      thead th.col-asset{width:42%}
+      th,td{padding:7px 5px;font-size:13px}
+      thead th.col-asset{width:44%}
       thead th.col-price{width:34%}
-      thead th.col-24h{width:24%}
+      thead th.col-24h{width:22%}
+      thead th.col-7d, td.td-7d{display:none} /* oculto columna 7d de la tabla */
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-wrap">
-      <img src="assets/A.PNG?v=3" alt="iXO" class="logo" />
+      <img src="assets/A.PNG?v=4" alt="iXO" class="logo" />
     </div>
     <h1 class="title">iXO</h1>
     <p class="subtitle">Cripto · Monitor</p>
@@ -80,7 +79,7 @@
       <table>
         <thead>
           <tr>
-            <th class="col-asset">Activo / <span style="color:#cfd5ff">MC</span></th>
+            <th class="col-asset">Activo / MC</th>
             <th class="num col-price">Precio (USD)</th>
             <th class="num col-24h">24h</th>
             <th class="num col-7d">7d</th>
@@ -97,11 +96,24 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
-    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    // ====== Formatters compactos ======
+    const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
     const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
+    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
 
-    // Lista explícita de stables/derivados
+    function formatPrice(v){
+      if (v == null) return '—';
+      if (Math.abs(v) >= 1) return nfUSD2.format(v);         // 2 decimales para >= 1
+      // < 1: hasta 6 decimales, sin ceros sobrantes
+      let s = v.toFixed(6);
+      s = s.replace(/0+$/,'').replace(/\.$/,'');
+      return '$'+s;
+    }
+    function pct(v){
+      return (typeof v === 'number') ? nfPct.format(v) + '%' : '—';
+    }
+
+    // ====== Filtro robusto stables/derivados ======
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -114,6 +126,7 @@
       return false;
     }
 
+    // ====== Data ======
     let FULL_LIST = [];
     let expanded = false;
 
@@ -135,19 +148,18 @@
       };
     }
 
-    async function load() {
-      try {
+    async function load(){
+      try{
         const arr = await fetchFromCoinGecko();
-        const list = arr.filter(c=>!shouldExcludeRaw(c)).map(mapItem)
-                        .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));
-        FULL_LIST = list;
+        FULL_LIST = arr.filter(shouldExcludeRaw.bind(null,false) === false ? (x)=>!shouldExcludeRaw(x) : (x)=>!shouldExcludeRaw(x))
+                       .map(mapItem)
+                       .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));
         document.getElementById('update-time').textContent =
           'Última actualización: ' + new Date().toLocaleString();
         render();
-      } catch (e) {
+      }catch(e){
         console.error(e);
-        document.getElementById('rows').innerHTML =
-          '<tr><td colspan="4">Error al cargar</td></tr>';
+        document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
       }
     }
 
@@ -156,32 +168,33 @@
       tbody.innerHTML = '';
       const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
 
-      for (const x of list) {
-        const price = x.usd != null ? nfUSD.format(x.usd) : '—';
-        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
-        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
-        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'up':'down') : '';
-        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'up':'down') : '';
-        const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
-        const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
+      for (const x of list){
+        const p   = formatPrice(x.usd);
+        const p24 = pct(x.change_24h);
+        const p7  = pct(x.change_7d);
+        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0?'up':'down') : '';
+        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0?'up':'down') : '';
+        const mcShort = x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
 
         tbody.insertAdjacentHTML('beforeend', `
           <tr>
             <td>
               <div class="name">
-                <div class="asset-title">
+                <div class="asset-line">
                   <strong>${x.name || x.id}</strong>
                   <span class="symbol">(${x.symbol || ''})</span>
+                  <span class="mc-inline">· MC ${mcShort}</span>
                 </div>
-                <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
               </div>
             </td>
-            <td class="num">${price}</td>
+            <td class="num">${p}</td>
             <td class="num">
-              <span class="chip ${cls24}">${c24}</span>
-              <span class="chip chip-7d ${cls7}" aria-label="7d">${c7}</span>
+              <div class="chips">
+                <span class="chip ${cls24}" title="24h">${p24}</span>
+                <span class="chip ${cls7}"  title="7d">${p7}</span>
+              </div>
             </td>
-            <td class="num td-7d ${cls7}">${c7}</td>
+            <td class="num td-7d ${cls7}">${p7}</td>
           </tr>
         `);
       }
@@ -198,7 +211,7 @@
       }
     }
 
-    document.getElementById('morebar').addEventListener('click', () => {
+    document.getElementById('morebar').addEventListener('click', ()=>{
       if (FULL_LIST.length <= 10) return;
       expanded = !expanded;
       render();
