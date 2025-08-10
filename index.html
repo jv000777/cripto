@@ -8,7 +8,7 @@
   <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0f1624">
-  <link rel="icon" href="assets/favicon.png">
+  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="32x32">
 
   <style>
     :root{
@@ -30,14 +30,14 @@
     .table-card{background:var(--card);border-radius:12px;overflow:hidden}
     table{width:100%;border-collapse:collapse;table-layout:fixed}
     thead th{background:var(--head);color:#d2dbff}
-    th,td{padding:12px 8px;text-align:left;border-top:1px solid:var(--line)}
+    th,td{padding:12px 8px;text-align:left;border-top:1px solid var(--line)}
     .name{display:flex;flex-direction:column;gap:4px}
     .mc{font-size:12px;color:#aab3d1}
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:700;font-size:13px;white-space:nowrap}
     .up{color:var(--up);background:rgba(34,197,94,.12)}
     .down{color:var(--down);background:rgba(239,68,68,.12)}
-    .chip-7d{display:none;margin-left:6px}        /* se muestra en móvil */
+    .chip-7d{display:none;margin-left:6px} /* en móvil se muestra junto a 24h */
 
     .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:14px;cursor:pointer;
       user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
@@ -50,7 +50,7 @@
     thead th.col-24h{width:16%}
     thead th.col-7d{width:16%}
 
-    /* MÓVIL: sin scroll lateral, 7d aparece como chip bajo 24h */
+    /* MÓVIL: sin scroll lateral; 7d va como chip al lado de 24h */
     @media (max-width:480px){
       thead th{font-size:12px}
       th,td{padding:10px 6px;font-size:13px}
@@ -99,11 +99,32 @@
     const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
     const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
-    // Filtrar stables y derivados
+    // Lista explícita de stables/derivados (por id de CoinGecko)
     const EXCLUDE_IDS = new Set([
+      // Stables comunes
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
-      "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
+      // Envueltos / LSD / derivados
+      "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
     ]);
+
+    // Heurística extra: filtra ids/nombres/símbolos que sugieren stable o envueltos
+    function shouldExcludeRaw(c){
+      const id = (c.id||"").toLowerCase();
+      const name = (c.name||"").toLowerCase();
+      const sym = (c.symbol||"").toLowerCase();
+
+      if (EXCLUDE_IDS.has(id)) return true;
+
+      // Envueltos / staked / derivados genéricos
+      const wrappedLike = /(wrapped|weth|rether|cbeth|frxeth|sfrxeth|staked|stake|liquid[-\s]?stak)/i;
+      if (wrappedLike.test(id) || wrappedLike.test(name)) return true;
+
+      // Estables por nombre/símbolo (usd, stablecoin, usdt/usdc/etc.)
+      const stableLike = /(stablecoin|usd$|^usd|usd[-\s]|^usdt$|^usdc$|^usdd$|^usdp$|^busd$|^gusd$)/i;
+      if (stableLike.test(name) || stableLike.test(sym) || stableLike.test(id)) return true;
+
+      return false;
+    }
 
     let FULL_LIST = [];
     let expanded = false;
@@ -119,7 +140,7 @@
 
     function mapItem(c){
       return {
-        id: c.id, name: c.name,
+        id: c.id, name: c.name, symbol: c.symbol,
         usd: c.current_price ?? null,
         change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
         change_7d:  c.price_change_percentage_7d_in_currency  ?? null,
@@ -130,12 +151,18 @@
     async function load() {
       try {
         let arr = await fetchFromCoinGecko();
-        let list = arr.map(mapItem)
-          .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+
+        // Filtra stables/derivados (explícitos + heurística) y ordena por MC
+        let list = arr
+          .filter((c)=>!shouldExcludeRaw(c))
+          .map(mapItem)
           .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
+
         FULL_LIST = list;
+
         document.getElementById('update-time').textContent =
           'Última actualización: ' + new Date().toLocaleString();
+
         render();
       } catch (e) {
         console.error(e);
