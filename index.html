@@ -102,8 +102,8 @@
       tbody.innerHTML = "";
       list.forEach((x) => {
         const price = x.usd != null ? nfUSD.format(x.usd) : "—";
-        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h/100) : "—";
-        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d/100)  : "—";
+        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
+        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
         const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'up':'down') : '';
         const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'up':'down')  : '';
         const mcTxt = x.market_cap != null ? nfUSD.format(x.market_cap) : "—";
