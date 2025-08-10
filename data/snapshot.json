@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-08-10T14:57:37.315Z",
+  "updated_at": "2025-08-10T15:31:15.531Z",
   "meta": {
     "included_ids": [
       "bitcoin",
@@ -107,6 +107,21 @@
         "raw": "goatseus-maximus",
         "resolved": "goatseus-maximus",
         "via": "id"
+      },
+      {
+        "raw": "optimism",
+        "resolved": "optimism",
+        "via": "id"
+      },
+      {
+        "raw": "solana",
+        "resolved": "solana",
+        "via": "id"
+      },
+      {
+        "raw": "ripple",
+        "resolved": "ripple",
+        "via": "id"
       }
     ],
     "missing": [],
@@ -123,444 +138,499 @@
   },
   "assets": {
     "BTC": {
-      "usd": 118741,
-      "change_24h": 1.5641720424807881,
-      "market_cap": 2363422930356,
-      "source": "coingecko",
+      "usd": 118702,
+      "change_24h": 1.5707772600622856,
+      "change_7d": 4.177620498274347,
+      "market_cap": 2362763948516,
       "id": "bitcoin",
-      "name": "Bitcoin"
+      "name": "Bitcoin",
+      "source": "coingecko"
     },
     "ETH": {
-      "usd": 4221.78,
-      "change_24h": 0.6631537147110457,
-      "market_cap": 509559429518,
-      "source": "coingecko",
+      "usd": 4221.22,
+      "change_24h": 0.5615124954122271,
+      "change_7d": 20.95138305187296,
+      "market_cap": 509576024835,
       "id": "ethereum",
-      "name": "Ethereum"
+      "name": "Ethereum",
+      "source": "coingecko"
     },
     "XRP": {
       "usd": 3.2,
-      "change_24h": -2.679261500257359,
-      "market_cap": 189776113550,
-      "source": "coingecko",
+      "change_24h": -2.414007615056493,
+      "change_7d": 11.11930188580075,
+      "market_cap": 189498876970,
       "id": "ripple",
-      "name": "XRP"
+      "name": "XRP",
+      "source": "coingecko"
     },
     "USDT": {
-      "usd": 0.999967,
-      "change_24h": -0.0053758197125970955,
-      "market_cap": 164504662774,
-      "source": "coingecko",
+      "usd": 0.999979,
+      "change_24h": -0.010373736945403961,
+      "change_7d": 0.0033387550864231175,
+      "market_cap": 164507383659,
       "id": "tether",
-      "name": "Tether"
+      "name": "Tether",
+      "source": "coingecko"
     },
     "BNB": {
-      "usd": 802.09,
-      "change_24h": -0.8694498084050906,
-      "market_cap": 111720514149,
-      "source": "coingecko",
+      "usd": 802.44,
+      "change_24h": -0.5147187943125073,
+      "change_7d": 7.318190392087343,
+      "market_cap": 111771738547,
       "id": "binancecoin",
-      "name": "BNB"
+      "name": "BNB",
+      "source": "coingecko"
     },
     "SOL": {
-      "usd": 181.51,
-      "change_24h": 0.3987989800019868,
-      "market_cap": 97907206474,
-      "source": "coingecko",
+      "usd": 181.75,
+      "change_24h": 0.906927062865262,
+      "change_7d": 12.73948004419378,
+      "market_cap": 97982003858,
       "id": "solana",
-      "name": "Solana"
+      "name": "Solana",
+      "source": "coingecko"
     },
     "USDC": {
-      "usd": 0.999807,
-      "change_24h": 0.0009630910273644912,
-      "market_cap": 65215605919,
-      "source": "coingecko",
+      "usd": 0.999809,
+      "change_24h": -0.0007364987031059485,
+      "change_7d": 0.01564598061643863,
+      "market_cap": 65215521187,
       "id": "usd-coin",
-      "name": "USDC"
+      "name": "USDC",
+      "source": "coingecko"
     },
     "STETH": {
-      "usd": 4216.26,
-      "change_24h": 0.6949614302757584,
-      "market_cap": 37417224544,
-      "source": "coingecko",
+      "usd": 4216.08,
+      "change_24h": 0.6090201914227064,
+      "change_7d": 21.532034651205205,
+      "market_cap": 37369792114,
       "id": "staked-ether",
-      "name": "Lido Staked Ether"
+      "name": "Lido Staked Ether",
+      "source": "coingecko"
     },
     "DOGE": {
-      "usd": 0.23375,
-      "change_24h": -2.3206797759889644,
-      "market_cap": 35162903806,
-      "source": "coingecko",
+      "usd": 0.233898,
+      "change_24h": -1.9578234409499222,
+      "change_7d": 17.853518865143325,
+      "market_cap": 35186361111,
       "id": "dogecoin",
-      "name": "Dogecoin"
+      "name": "Dogecoin",
+      "source": "coingecko"
     },
     "TRX": {
-      "usd": 0.340648,
-      "change_24h": 1.2705843808907127,
-      "market_cap": 32258442960,
-      "source": "coingecko",
+      "usd": 0.34058,
+      "change_24h": 1.3752535843129061,
+      "change_7d": 4.673937242475013,
+      "market_cap": 32252457573,
       "id": "tron",
-      "name": "TRON"
+      "name": "TRON",
+      "source": "coingecko"
     },
     "ADA": {
-      "usd": 0.801363,
-      "change_24h": -0.9065224866815521,
-      "market_cap": 28999437469,
-      "source": "coingecko",
+      "usd": 0.804248,
+      "change_24h": 0.09577648019878607,
+      "change_7d": 11.227834814355512,
+      "market_cap": 29099538273,
       "id": "cardano",
-      "name": "Cardano"
-    },
-    "WBTC": {
-      "usd": 118549,
-      "change_24h": 1.5047303700547792,
-      "market_cap": 15063382770,
-      "source": "coingecko",
-      "id": "wrapped-bitcoin",
-      "name": "Wrapped Bitcoin"
+      "name": "Cardano",
+      "source": "coingecko"
     },
     "LINK": {
-      "usd": 22.02,
-      "change_24h": 3.268010439163139,
-      "market_cap": 14931305241,
-      "source": "coingecko",
+      "usd": 22.35,
+      "change_24h": 5.775262141363956,
+      "change_7d": 38.09313367096655,
+      "market_cap": 15151036133,
       "id": "chainlink",
-      "name": "Chainlink"
+      "name": "Chainlink",
+      "source": "coingecko"
+    },
+    "WBTC": {
+      "usd": 118592,
+      "change_24h": 1.567735892403576,
+      "change_7d": 4.137058949161331,
+      "market_cap": 15071320515,
+      "id": "wrapped-bitcoin",
+      "name": "Wrapped Bitcoin",
+      "source": "coingecko"
     },
     "XLM": {
-      "usd": 0.442962,
-      "change_24h": -2.2154647507143275,
-      "market_cap": 13853496644,
-      "source": "coingecko",
+      "usd": 0.443746,
+      "change_24h": -1.5901272090438467,
+      "change_7d": 12.2571914376388,
+      "market_cap": 13881262015,
       "id": "stellar",
-      "name": "Stellar"
+      "name": "Stellar",
+      "source": "coingecko"
     },
     "BCH": {
-      "usd": 580.1,
-      "change_24h": 1.1834011520349288,
-      "market_cap": 11548860909,
-      "source": "coingecko",
+      "usd": 575.76,
+      "change_24h": 1.2818208392835777,
+      "change_7d": 6.795050931042759,
+      "market_cap": 11463459475,
       "id": "bitcoin-cash",
-      "name": "Bitcoin Cash"
+      "name": "Bitcoin Cash",
+      "source": "coingecko"
     },
     "AVAX": {
-      "usd": 23.85,
-      "change_24h": -1.491226554717269,
-      "market_cap": 10070276495,
-      "source": "coingecko",
+      "usd": 23.96,
+      "change_24h": -0.7662808245142906,
+      "change_7d": 12.10425462077948,
+      "market_cap": 10095200673,
       "id": "avalanche-2",
-      "name": "Avalanche"
+      "name": "Avalanche",
+      "source": "coingecko"
     },
     "LTC": {
-      "usd": 124.61,
-      "change_24h": 2.009761782690542,
-      "market_cap": 9489439577,
-      "source": "coingecko",
+      "usd": 125.41,
+      "change_24h": 3.273528681580039,
+      "change_7d": 14.932759068990716,
+      "market_cap": 9549464845,
       "id": "litecoin",
-      "name": "Litecoin"
+      "name": "Litecoin",
+      "source": "coingecko"
     },
     "LEO": {
       "usd": 9.04,
-      "change_24h": 0.6806526570787353,
-      "market_cap": 8340128559,
-      "source": "coingecko",
+      "change_24h": 0.8265643465592061,
+      "change_7d": 0.9095156704401863,
+      "market_cap": 8341683579,
       "id": "leo-token",
-      "name": "LEO Token"
+      "name": "LEO Token",
+      "source": "coingecko"
     },
     "SHIB": {
-      "usd": 0.00001351,
-      "change_24h": -1.6334270209296338,
-      "market_cap": 7958019679,
-      "source": "coingecko",
+      "usd": 0.00001355,
+      "change_24h": -1.2936702279445924,
+      "change_7d": 11.137618183306843,
+      "market_cap": 7980426071,
       "id": "shiba-inu",
-      "name": "Shiba Inu"
+      "name": "Shiba Inu",
+      "source": "coingecko"
     },
     "UNI": {
-      "usd": 11.05,
-      "change_24h": 1.6514602520968302,
-      "market_cap": 6628622321,
-      "source": "coingecko",
+      "usd": 11.07,
+      "change_24h": 2.0017709644281854,
+      "change_7d": 20.994924997916435,
+      "market_cap": 6668255629,
       "id": "uniswap",
-      "name": "Uniswap"
+      "name": "Uniswap",
+      "source": "coingecko"
     },
     "DOT": {
-      "usd": 4.04,
-      "change_24h": -1.0437480006639355,
-      "market_cap": 6155349232,
-      "source": "coingecko",
+      "usd": 4.06,
+      "change_24h": -0.23587375390928164,
+      "change_7d": 13.048618698857503,
+      "market_cap": 6172169191,
       "id": "polkadot",
-      "name": "Polkadot"
+      "name": "Polkadot",
+      "source": "coingecko"
     },
     "XMR": {
-      "usd": 267.07,
-      "change_24h": -0.6545735206769338,
-      "market_cap": 4924598262,
-      "source": "coingecko",
+      "usd": 264.08,
+      "change_24h": -2.332090424749653,
+      "change_7d": -10.498806740140916,
+      "market_cap": 4870817543,
       "id": "monero",
-      "name": "Monero"
+      "name": "Monero",
+      "source": "coingecko"
     },
     "DAI": {
       "usd": 1,
-      "change_24h": 0.006353111076271477,
-      "market_cap": 3819470032,
-      "source": "coingecko",
+      "change_24h": 0.0022388018969405335,
+      "change_7d": 0.021234873361552626,
+      "market_cap": 3818999822,
       "id": "dai",
-      "name": "Dai"
+      "name": "Dai",
+      "source": "coingecko"
     },
     "ETC": {
-      "usd": 23.13,
-      "change_24h": -0.10786521262778649,
-      "market_cap": 3537895503,
-      "source": "coingecko",
+      "usd": 23.31,
+      "change_24h": 0.8588569800769927,
+      "change_7d": 18.30598299588386,
+      "market_cap": 3560454205,
       "id": "ethereum-classic",
-      "name": "Ethereum Classic"
+      "name": "Ethereum Classic",
+      "source": "coingecko"
     },
     "NEAR": {
-      "usd": 2.76,
-      "change_24h": -0.8148070380428671,
-      "market_cap": 3434319190,
-      "source": "coingecko",
+      "usd": 2.78,
+      "change_24h": 0.12718066904526093,
+      "change_7d": 14.762878504172628,
+      "market_cap": 3453210478,
       "id": "near",
-      "name": "NEAR Protocol"
+      "name": "NEAR Protocol",
+      "source": "coingecko"
     },
     "APT": {
-      "usd": 4.68,
-      "change_24h": -2.27821466970669,
-      "market_cap": 3148010316,
-      "source": "coingecko",
+      "usd": 4.71,
+      "change_24h": -1.6119255569359607,
+      "change_7d": 12.102640288017087,
+      "market_cap": 3165900537,
       "id": "aptos",
-      "name": "Aptos"
+      "name": "Aptos",
+      "source": "coingecko"
     },
     "ICP": {
-      "usd": 5.64,
-      "change_24h": 0.3579736895495865,
-      "market_cap": 3025340102,
-      "source": "coingecko",
+      "usd": 5.68,
+      "change_24h": 1.2211557087853186,
+      "change_7d": 11.915876201837001,
+      "market_cap": 3039908667,
       "id": "internet-computer",
-      "name": "Internet Computer"
+      "name": "Internet Computer",
+      "source": "coingecko"
     },
     "OKB": {
-      "usd": 46.32,
-      "change_24h": -1.220785000949837,
-      "market_cap": 2785139288,
-      "source": "coingecko",
+      "usd": 46.38,
+      "change_24h": -1.3397378998896006,
+      "change_7d": -0.7972065260197175,
+      "market_cap": 2782329560,
       "id": "okb",
-      "name": "OKB"
+      "name": "OKB",
+      "source": "coingecko"
     },
     "KAS": {
-      "usd": 0.093564,
-      "change_24h": -1.6529328397996386,
-      "market_cap": 2467149048,
-      "source": "coingecko",
+      "usd": 0.093523,
+      "change_24h": -1.5714766812251428,
+      "change_7d": 9.4489276961904,
+      "market_cap": 2466110527,
       "id": "kaspa",
-      "name": "Kaspa"
+      "name": "Kaspa",
+      "source": "coingecko"
     },
     "ARB": {
-      "usd": 0.463117,
-      "change_24h": 0.537690688450063,
-      "market_cap": 2383329771,
-      "source": "coingecko",
+      "usd": 0.466854,
+      "change_24h": 1.1741367107875662,
+      "change_7d": 22.366904201728175,
+      "market_cap": 2405210309,
       "id": "arbitrum",
-      "name": "Arbitrum"
+      "name": "Arbitrum",
+      "source": "coingecko"
     },
     "ALGO": {
-      "usd": 0.264412,
-      "change_24h": -3.0483260185555796,
-      "market_cap": 2299079968,
-      "source": "coingecko",
+      "usd": 0.265219,
+      "change_24h": -2.2905039402667784,
+      "change_7d": 9.7021815840776,
+      "market_cap": 2309470909,
       "id": "algorand",
-      "name": "Algorand"
+      "name": "Algorand",
+      "source": "coingecko"
     },
     "POL": {
-      "usd": 0.242844,
-      "change_24h": -1.8189078138857162,
-      "market_cap": 2196808724,
-      "source": "coingecko",
+      "usd": 0.243308,
+      "change_24h": -1.6006466088032367,
+      "change_7d": 21.038763426455386,
+      "market_cap": 2200775366,
       "id": "polygon-ecosystem-token",
-      "name": "POL (ex-MATIC)"
+      "name": "POL (ex-MATIC)",
+      "source": "coingecko"
     },
     "VET": {
-      "usd": 0.02516835,
-      "change_24h": 0.47300945185267146,
-      "market_cap": 2164120665,
-      "source": "coingecko",
+      "usd": 0.02523745,
+      "change_24h": 1.1334217759723666,
+      "change_7d": 8.767583477800315,
+      "market_cap": 2169692016,
       "id": "vechain",
-      "name": "VeChain"
+      "name": "VeChain",
+      "source": "coingecko"
     },
     "BONK": {
-      "usd": 0.00002694,
-      "change_24h": -1.0159856090230897,
-      "market_cap": 2082225112,
-      "source": "coingecko",
+      "usd": 0.00002717,
+      "change_24h": 0.3637784256384371,
+      "change_7d": 6.286063801639755,
+      "market_cap": 2101069560,
       "id": "bonk",
-      "name": "Bonk"
+      "name": "Bonk",
+      "source": "coingecko"
     },
     "RENDER": {
-      "usd": 3.9,
-      "change_24h": -1.6474515625696236,
-      "market_cap": 2022532603,
-      "source": "coingecko",
+      "usd": 3.94,
+      "change_24h": -0.4365783697210556,
+      "change_7d": 12.254832386763802,
+      "market_cap": 2035638929,
       "id": "render-token",
-      "name": "Render"
+      "name": "Render",
+      "source": "coingecko"
     },
     "WLD": {
-      "usd": 1.06,
-      "change_24h": -1.0097144242976859,
-      "market_cap": 1963983521,
-      "source": "coingecko",
+      "usd": 1.068,
+      "change_24h": -0.18188865527372602,
+      "change_7d": 10.610778306969385,
+      "market_cap": 1976957995,
       "id": "worldcoin-wld",
-      "name": "Worldcoin"
+      "name": "Worldcoin",
+      "source": "coingecko"
+    },
+    "SEI": {
+      "usd": 0.323832,
+      "change_24h": -2.008385510673766,
+      "change_7d": 17.19240316864403,
+      "market_cap": 1871142340,
+      "id": "sei-network",
+      "name": "Sei",
+      "source": "coingecko"
     },
     "TRUMP": {
       "usd": 9.36,
-      "change_24h": -2.101756720134904,
-      "market_cap": 1869669236,
-      "source": "coingecko",
+      "change_24h": -1.8446189103848338,
+      "change_7d": 6.568484841549741,
+      "market_cap": 1869304756,
       "id": "official-trump",
-      "name": "Official Trump"
-    },
-    "SEI": {
-      "usd": 0.322459,
-      "change_24h": -2.8591009111318897,
-      "market_cap": 1861916843,
-      "source": "coingecko",
-      "id": "sei-network",
-      "name": "Sei"
+      "name": "Official Trump",
+      "source": "coingecko"
     },
     "FIL": {
-      "usd": 2.6,
-      "change_24h": -0.5145010147084361,
-      "market_cap": 1778386894,
-      "source": "coingecko",
+      "usd": 2.61,
+      "change_24h": -0.06197400901357919,
+      "change_7d": 12.140014000736622,
+      "market_cap": 1783384771,
       "id": "filecoin",
-      "name": "Filecoin"
+      "name": "Filecoin",
+      "source": "coingecko"
     },
     "OP": {
-      "usd": 0.778668,
-      "change_24h": -1.1058196189988272,
-      "market_cap": 1362356048,
-      "source": "coingecko",
+      "usd": 0.782402,
+      "change_24h": -0.8560802062357489,
+      "change_7d": 20.44093899000134,
+      "market_cap": 1372010923,
       "id": "optimism",
-      "name": "Optimism"
+      "name": "Optimism",
+      "source": "coingecko"
     },
     "IMX": {
-      "usd": 0.590864,
-      "change_24h": 2.9766149165263345,
-      "market_cap": 1130397580,
-      "source": "coingecko",
+      "usd": 0.593777,
+      "change_24h": 3.1260733628765545,
+      "change_7d": 20.17449401573914,
+      "market_cap": 1137449633,
       "id": "immutable-x",
-      "name": "Immutable"
+      "name": "Immutable",
+      "source": "coingecko"
     },
     "CFX": {
-      "usd": 0.207625,
-      "change_24h": -2.586451060238958,
-      "market_cap": 1065277303,
-      "source": "coingecko",
+      "usd": 0.208481,
+      "change_24h": -2.0630524919543336,
+      "change_7d": 0.4753688869289418,
+      "market_cap": 1066995621,
       "id": "conflux-token",
-      "name": "Conflux"
+      "name": "Conflux",
+      "source": "coingecko"
     },
     "GRT": {
-      "usd": 0.097878,
-      "change_24h": -1.5334182139995882,
-      "market_cap": 1020020169,
-      "source": "coingecko",
+      "usd": 0.098518,
+      "change_24h": -0.6371362497880996,
+      "change_7d": 8.252820512378817,
+      "market_cap": 1025155973,
       "id": "the-graph",
-      "name": "The Graph"
+      "name": "The Graph",
+      "source": "coingecko"
     },
     "GALA": {
-      "usd": 0.01755601,
-      "change_24h": -0.9283180683193906,
-      "market_cap": 800081051,
-      "source": "coingecko",
+      "usd": 0.01763219,
+      "change_24h": -0.2040582677648599,
+      "change_7d": 17.408166225691847,
+      "market_cap": 803374659,
       "id": "gala",
-      "name": "GALA"
+      "name": "GALA",
+      "source": "coingecko"
     },
     "FLOW": {
-      "usd": 0.385851,
-      "change_24h": 0.14192413652680225,
-      "market_cap": 617620050,
-      "source": "coingecko",
+      "usd": 0.387686,
+      "change_24h": 0.9302125150230995,
+      "change_7d": 8.201915834880953,
+      "market_cap": 619342607,
       "id": "flow",
-      "name": "Flow"
+      "name": "Flow",
+      "source": "coingecko"
     },
     "RUNE": {
-      "usd": 1.41,
-      "change_24h": -0.8489591903764427,
-      "market_cap": 495710618,
-      "source": "coingecko",
+      "usd": 1.42,
+      "change_24h": -0.22638232064241776,
+      "change_7d": 11.389164512689637,
+      "market_cap": 500599291,
       "id": "thorchain",
-      "name": "THORChain"
+      "name": "THORChain",
+      "source": "coingecko"
     },
     "FRAX": {
-      "usd": 0.997949,
-      "change_24h": -0.011778605451332321,
-      "market_cap": 298028192,
-      "source": "coingecko",
+      "usd": 0.998249,
+      "change_24h": -0.007871536219661131,
+      "change_7d": 0.0649351545975022,
+      "market_cap": 298120937,
       "id": "frax",
-      "name": "Legacy Frax Dollar"
+      "name": "Legacy Frax Dollar",
+      "source": "coingecko"
     },
     "MINA": {
-      "usd": 0.198941,
-      "change_24h": -1.4960138139989254,
-      "market_cap": 247964982,
-      "source": "coingecko",
+      "usd": 0.199798,
+      "change_24h": -0.8653658959036808,
+      "change_7d": 11.434594243503076,
+      "market_cap": 248418600,
       "id": "mina-protocol",
-      "name": "Mina Protocol"
+      "name": "Mina Protocol",
+      "source": "coingecko"
     },
     "BOME": {
-      "usd": 0.0019347,
-      "change_24h": -1.8531573999289495,
-      "market_cap": 133400463,
-      "source": "coingecko",
+      "usd": 0.00194866,
+      "change_24h": -0.958473255461946,
+      "change_7d": 11.024303468016605,
+      "market_cap": 134373704,
       "id": "book-of-meme",
-      "name": "BOOK OF MEME"
+      "name": "BOOK OF MEME",
+      "source": "coingecko"
     },
     "GOAT": {
-      "usd": 0.102364,
-      "change_24h": -4.094128974675809,
-      "market_cap": 102380635,
-      "source": "coingecko",
+      "usd": 0.102559,
+      "change_24h": -3.7405280539583203,
+      "change_7d": 8.215540393966752,
+      "market_cap": 102591097,
       "id": "goatseus-maximus",
-      "name": "Goatseus Maximus"
+      "name": "Goatseus Maximus",
+      "source": "coingecko"
     },
     "STREAM": {
-      "usd": 0.0493327,
-      "change_24h": 0.8172959082926192,
-      "market_cap": 6678863,
-      "source": "coingecko",
+      "usd": 0.04917601,
+      "change_24h": 0.4417570979051717,
+      "change_7d": 4.290856428030785,
+      "market_cap": 6658024,
       "id": "streamflow",
-      "name": "Streamflow"
+      "name": "Streamflow",
+      "source": "coingecko"
     },
     "CHILLGUY": {
-      "usd": 0.00050388,
-      "change_24h": 0.07508373327570454,
-      "market_cap": 503770,
-      "source": "coingecko",
+      "usd": 0.00050305,
+      "change_24h": -0.21415671203445732,
+      "change_7d": 16.487110702717278,
+      "market_cap": 502179,
       "id": "just-a-chill-guy",
-      "name": "Just a chill guy (ETH)"
+      "name": "Just a chill guy (ETH)",
+      "source": "coingecko"
     },
     "PENGU": {
       "usd": 0.00020094,
-      "change_24h": 1.9376545829708607,
+      "change_24h": 2.331296265267057,
+      "change_7d": 11.874838200357251,
       "market_cap": 0,
-      "source": "coingecko",
       "id": "penguiana",
-      "name": "Penguiana"
+      "name": "Penguiana",
+      "source": "coingecko"
     },
     "MKR": {
-      "usd": 2085.79,
-      "change_24h": 0.6317817895444564,
+      "usd": 2095.16,
+      "change_24h": 1.4402226516365109,
+      "change_7d": 11.093448818425783,
       "market_cap": 0,
-      "source": "coingecko",
       "id": "maker",
-      "name": "Maker"
+      "name": "Maker",
+      "source": "coingecko"
     },
     "FTM": {
-      "usd": 0.308421,
-      "change_24h": -1.5337356686292465,
+      "usd": 0.308509,
+      "change_24h": -2.022909048977846,
+      "change_7d": 0.30517375814082687,
       "market_cap": 0,
-      "source": "coingecko",
       "id": "fantom",
-      "name": "Fantom"
+      "name": "Fantom",
+      "source": "coingecko"
     }
   }
 }
