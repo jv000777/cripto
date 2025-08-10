@@ -1,96 +1,129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>iXO · Cripto Monitor</title>
-  <style>
-    :root{
-      --bg:#0f172a; --card:#1e293b; --head:#0b1220; --muted:#94a3b8; --ink:#fff;
-      --up:#22c55e; --down:#ef4444; --line:#334155; --max:980px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    header{padding:26px 16px 10px;text-align:center}
-    .brand{display:inline-flex;flex-direction:column;align-items:center;gap:8px}
-    .logo{height:68px;width:68px;object-fit:contain;border-radius:10px}
-    /* cuando tengas PNG con fondo transparente, quedará perfecto sin borde */
-    .title{font-size:48px;font-weight:800;letter-spacing:.4px;line-height:1;margin:0}
-    .subtitle{font-size:17px;color:var(--muted);margin:6px 0 6px}
-    .update{color:var(--muted);font-size:13px;margin:0 0 18px}
-    .wrap{max-width:var(--max);margin:0 auto;padding:0 16px 28px}
-    table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
-    thead th{background:var(--head);color:#cfd5ff;text-align:left;padding:12px}
-    tbody td{padding:14px 12px;border-top:1px solid var(--line)}
-    .num{text-align:right;font-variant-numeric:tabular-nums}
-    .up{color:var(--up);font-weight:700}
-    .down{color:var(--down);font-weight:700}
-    footer{color:var(--muted);text-align:center;font-size:12px;padding:22px}
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iXO · Cripto Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .logo {
+            display: block;
+            margin: 20px auto 10px auto;
+            max-width: 100px;
+            height: auto;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+        h2 {
+            font-size: 1.2em;
+            font-weight: normal;
+            color: #8b949e;
+            margin-top: 5px;
+        }
+        .last-update {
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            color: #8b949e;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 90%;
+            max-width: 500px;
+            background-color: #161b22;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #21262d;
+        }
+        tr:nth-child(even) {
+            background-color: #161b22;
+        }
+        tr:nth-child(odd) {
+            background-color: #0d1117;
+        }
+        .positive {
+            color: #3fb950;
+        }
+        .negative {
+            color: #f85149;
+        }
+        footer {
+            font-size: 0.8em;
+            margin: 20px 0;
+            color: #8b949e;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <img class="logo" src="assets/ixo-logo.jpg" alt="iXO" />
-      <h1 class="title">iXO</h1>
-      <div class="subtitle">Cripto · Monitor</div>
-    </div>
-    <p class="update">Última actualización: <span id="upd">—</span></p>
-  </header>
-
-  <div class="wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Activo</th>
-          <th class="num">Precio (USD)</th>
-          <th class="num">Cambio 24h</th>
-        </tr>
-      </thead>
-      <tbody id="rows"><tr><td colspan="3">Cargando…</td></tr></tbody>
+    <img class="logo" src="assets/ixo-logo-png.png" alt="iXO" />
+    <h1>iXO</h1>
+    <h2>Cripto · Monitor</h2>
+    <div class="last-update" id="last-update">Última actualización: ...</div>
+    
+    <table id="crypto-table">
+        <thead>
+            <tr>
+                <th>Activo</th>
+                <th>Precio (USD)</th>
+                <th>Cambio 24h</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Datos se insertarán aquí -->
+        </tbody>
     </table>
-  </div>
+    
+    <footer>
+        © 2025 jv000777 · GitHub Pages
+    </footer>
 
-  <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
+    <script>
+        async function fetchData() {
+            const res = await fetch('data/snapshot.json');
+            const data = await res.json();
+            const tbody = document.querySelector("#crypto-table tbody");
+            tbody.innerHTML = "";
 
-  <script>
-    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
-    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
-    const SYMBOLS = {BITCOIN:'BTC',ETHEREUM:'ETH',SOLANA:'SOL',RIPPLE:'XRP',LITECOIN:'LTC'};
+            // Si el JSON incluye timestamp, usarlo como última actualización
+            if (data.timestamp) {
+                const fecha = new Date(data.timestamp);
+                document.getElementById("last-update").textContent =
+                    "Última actualización: " + fecha.toLocaleString();
+            }
 
-    async function load(){
-      try{
-        const r = await fetch('data/snapshot.json', {cache:'no-store'});
-        const j = await r.json();
-        document.getElementById('upd').textContent =
-          new Date(j.updated_at || Date.now()).toLocaleString();
+            // Eliminar la clave 'timestamp' para que no aparezca como activo
+            const entries = Object.entries(data).filter(([key]) => key !== "timestamp");
 
-        const data = j.assets || j; // soporta /assets o raíz
-        const tbody = document.getElementById('rows');
-        tbody.innerHTML='';
-
-        Object.entries(data).forEach(([k,v])=>{
-          const tr = document.createElement('tr');
-          const sym = SYMBOLS[k] || k;
-          const price = v?.usd ?? null;
-          const chg = v?.change_24h;
-
-          tr.innerHTML = `
-            <td>${sym}</td>
-            <td class="num">${price!=null ? nfUSD.format(price) : '—'}</td>
-            <td class="num ${typeof chg==='number' ? (chg>=0?'up':'down') : ''}">
-              ${typeof chg==='number' ? nfPct.format(chg)+'%' : '—'}
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }catch(e){
-        document.getElementById('rows').innerHTML =
-          `<tr><td colspan="3">Error cargando datos: ${e.message}</td></tr>`;
-      }
-    }
-    load(); setInterval(load, 60000);
-    document.getElementById('y').textContent=new Date().getFullYear();
-  </script>
+            for (const [name, info] of entries) {
+                const row = document.createElement("tr");
+                const price = Number(info.usd).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                const change = info.change_24h;
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                row.innerHTML = `
+                    <td>${name}</td>
+                    <td>${price}</td>
+                    <td class="${changeClass}">${change.toFixed(2)}%</td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+        fetchData();
+        setInterval(fetchData, 60000);
+    </script>
 </body>
 </html>
