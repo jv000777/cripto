@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>iXO · Cripto Monitor</title>
   <style>
-    :root {
+    :root{
       --bg:#0f172a; --card:#1e293b; --head:#0b1220; --muted:#94a3b8; --ink:#fff;
       --up:#22c55e; --down:#ef4444; --line:#334155; --max:980px;
     }
@@ -22,12 +22,20 @@
     .update{color:var(--muted);font-size:13px;margin:0 0 18px}
     .wrap{max-width:var(--max);margin:0 auto;padding:0 16px 28px}
     table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
-    thead th{background:var(--head);color:#cfd5ff;text-align:left;padding:12px}
+    thead th{background:var(--head);color:#cfd5ff;text-align:left;padding:12px;cursor:pointer;user-select:none}
+    thead th.sortable:hover{opacity:.9}
     tbody td{padding:14px 12px;border-top:1px solid var(--line)}
     .num{text-align:right;font-variant-numeric:tabular-nums}
     .up{color:var(--up);font-weight:700}
     .down{color:var(--down);font-weight:700}
+    .pos{width:36px;text-align:right;color:#cfd5ff}
+    .name{display:flex;flex-direction:column}
+    .mc{color:#aab3d1;font-size:12px;margin-top:4px}
+    .arrow{font-size:12px;margin-left:6px;opacity:.8}
     footer{color:var(--muted);text-align:center;font-size:12px;padding:22px}
+    @media (max-width:680px){
+      .mc{display:block}
+    }
   </style>
 </head>
 <body>
@@ -44,12 +52,16 @@
     <table>
       <thead>
         <tr>
-          <th>Activo</th>
+          <th class="pos">#</th>
+          <th>Activo / <span style="color:#cfd5ff">MC</span></th>
           <th class="num">Precio (USD)</th>
-          <th class="num">Cambio 24h</th>
+          <th class="num sortable" data-sort="change_4h">4h <span class="arrow" id="arr-4h">↕</span></th>
+          <th class="num sortable" data-sort="change_24h">24h <span class="arrow" id="arr-24h">↕</span></th>
+          <th class="num sortable" data-sort="change_7d">7d <span class="arrow" id="arr-7d">↕</span></th>
+          <th class="num sortable" data-sort="change_30d">30d <span class="arrow" id="arr-30d">↕</span></th>
         </tr>
       </thead>
-      <tbody id="rows"><tr><td colspan="3">Cargando…</td></tr></tbody>
+      <tbody id="rows"><tr><td colspan="7">Cargando…</td></tr></tbody>
     </table>
   </div>
 
@@ -59,57 +71,116 @@
     const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
     const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
 
+    // Excluir de la vista: stables y envueltos/derivados
+    const EXCLUDE_IDS = new Set([
+      // stables
+      "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+      // wrapped / staked / derivados
+      "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth"
+    ]);
+
+    let sortKey = null; // "change_4h"|"change_24h"|"change_7d"|"change_30d"
+    let sortDir = "desc"; // "asc"|"desc"
+    const arrows = {
+      change_4h: document.getElementById("arr-4h"),
+      change_24h: document.getElementById("arr-24h"),
+      change_7d: document.getElementById("arr-7d"),
+      change_30d: document.getElementById("arr-30d"),
+    };
+
     async function fetchData() {
       try {
         const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
         const j = await res.json();
 
-        // Mostrar fecha del JSON
+        // fecha
         const last = j.updated_at || j.timestamp || null;
-        document.getElementById("upd").textContent =
-          last ? new Date(last).toLocaleString() : "—";
+        document.getElementById("upd").textContent = last ? new Date(last).toLocaleString() : "—";
 
-        // Tomar lista de activos y ordenar por market_cap
+        // assets -> array con id visible
         const assets = j.assets || {};
-        const sorted = Object.entries(assets)
-          .filter(([_,info]) => info.market_cap != null)
-          .sort((a,b) => b[1].market_cap - a[1].market_cap);
+        let list = Object.values(assets).map(v => v); // cada v ya contiene {id,name,...}
 
-        // Quedarse con los 10 primeros
-        const top10 = sorted.slice(0, 10);
+        // filtrar ids excluidos
+        list = list.filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()));
 
-        const tbody = document.getElementById("rows");
-        tbody.innerHTML = "";
+        // ordenar por MC y tomar top-10
+        list.sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
+        list = list.slice(0, 10);
 
-        for (const [symbol, info] of top10) {
-          const price = info.usd != null ? nfUSD.format(info.usd) : "—";
-          const chg = (typeof info.change_24h === 'number') ? info.change_24h : null;
-          const change = chg != null ? nfPct.format(chg/100) : "—";
-          const cls = chg == null ? '' : (chg >= 0 ? 'up' : 'down');
-
-          tbody.insertAdjacentHTML("beforeend", `
-            <tr>
-              <td>${info.name || symbol}</td>
-              <td class="num">${price}</td>
-              <td class="num ${cls}">${change}</td>
-            </tr>
-          `);
-        }
-      } catch (err) {
-        console.error("Error cargando precios:", err);
-        document.getElementById("rows").innerHTML = `<tr><td colspan="3">Error al cargar</td></tr>`;
+        render(list);
+      } catch (e) {
+        console.error(e);
+        document.getElementById("rows").innerHTML = `<tr><td colspan="7">Error al cargar</td></tr>`;
       }
     }
 
-    // Año en footer
+    function render(list){
+      // sorting por columna de cambios si está definida
+      if (sortKey){
+        list = [...list].sort((a,b) => {
+          const va = (typeof a[sortKey] === 'number') ? a[sortKey] : -Infinity;
+          const vb = (typeof b[sortKey] === 'number') ? b[sortKey] : -Infinity;
+          return sortDir === "asc" ? (va - vb) : (vb - va);
+        });
+      }
+
+      const tbody = document.getElementById("rows");
+      tbody.innerHTML = "";
+      list.forEach((x, i) => {
+        const price = x.usd != null ? nfUSD.format(x.usd) : "—";
+        const c4  = (typeof x.change_4h === 'number')  ? nfPct.format(x.change_4h/100) : "—";
+        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h/100) : "—";
+        const c7  = (typeof x.change_7d === 'number')  ? nfPct.format(x.change_7d/100) : "—";
+        const c30 = (typeof x.change_30d === 'number') ? nfPct.format(x.change_30d/100) : "—";
+
+        const cls4  = (typeof x.change_4h === 'number')  ? (x.change_4h>=0 ? 'up':'down')   : '';
+        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'up':'down')  : '';
+        const cls7  = (typeof x.change_7d === 'number')  ? (x.change_7d>=0 ? 'up':'down')   : '';
+        const cls30 = (typeof x.change_30d === 'number') ? (x.change_30d>=0 ? 'up':'down')  : '';
+
+        const mcTxt = x.market_cap != null ? nfUSD.format(x.market_cap) : "—";
+
+        tbody.insertAdjacentHTML("beforeend", `
+          <tr>
+            <td class="pos">${i+1}</td>
+            <td>
+              <div class="name"><strong>${x.name || x.id}</strong>
+                <span class="mc">MC: ${mcTxt}</span>
+              </div>
+            </td>
+            <td class="num">${price}</td>
+            <td class="num ${cls4}">${c4}</td>
+            <td class="num ${cls24}">${c24}</td>
+            <td class="num ${cls7}">${c7}</td>
+            <td class="num ${cls30}">${c30}</td>
+          </tr>
+        `);
+      });
+
+      // actualizar flechas
+      Object.keys(arrows).forEach(k=>{
+        if (k === sortKey) arrows[k].textContent = sortDir === "asc" ? "▲" : "▼";
+        else arrows[k].textContent = "↕";
+      });
+    }
+
+    // handlers de sort
+    document.querySelectorAll('th.sortable').forEach(th=>{
+      th.addEventListener('click', ()=>{
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir = (sortDir === "asc") ? "desc" : "asc";
+        else { sortKey = key; sortDir = "desc"; }
+        fetchData().then(()=>{}); // re-render con el nuevo orden
+      });
+    });
+
     document.getElementById("y").textContent = new Date().getFullYear();
 
-    // Carga inicial y cada 60s
+    // carga inicial + cada 60s
     fetchData();
     setInterval(fetchData, 60000);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) fetchData();
-    });
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) fetchData(); });
   </script>
 </body>
 </html>
