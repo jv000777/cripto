@@ -12,7 +12,21 @@
 </head>
 <body>
   <h1>¡Deploy exitoso! 🚀</h1>
-  <p>Esta página está servida por GitHub Pages.</p>
+  <p>Esta página está servida por GitHub Pages para iXO ¥.</p>
+  <p>Edita este <code>index.html</code> y haz commit para actualizar.</p>
+
+<p>Última actualización: <span id="upd">—</span></p>
+<pre id="out">Cargando…</pre>
+<script>
+(async () => {
+  const r = await fetch('data/snapshot.json', { cache: 'no-store' });
+  const j = await r.json();
+  document.getElementById('upd').textContent = new Date(j.updated_at || Date.now()).toLocaleString();
+  document.getElementById('out').textContent = JSON.stringify(j.assets || j, null, 2);
+})();
+</script>
+</body>
+</html>
   <p>Edita este <code>index.html</code> y haz commit para actualizar.</p>
 </body>
 </html>
