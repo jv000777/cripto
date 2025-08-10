@@ -1,151 +1,118 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cripto · Monitor</title>
-  <link rel="preconnect" href="https://jv000777.github.io">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iXO · Cripto Monitor</title>
   <style>
-    :root{
-      --bg:#0f1221; --card:#161a2e; --muted:#8891b3; --txt:#e6e9ff;
-      --up:#22c55e; --down:#ef4444; --border:#232747; --accent:#7c8cff;
-      --max:980px;
+    body {
+      background-color: #0f172a;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--txt); background:radial-gradient(1200px 600px at 80% -200px, #1b2040, var(--bg));
+    header {
+      padding: 20px 0;
     }
-    .wrap{max-width:var(--max); margin:0 auto; padding:28px;}
-    header{display:flex; gap:18px; align-items:center; justify-content:space-between; margin-bottom:18px;}
-    header h1{font-size:20px; margin:0}
-    header .badge img{height:20px; vertical-align:middle}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px;}
-    .meta{color:var(--muted); font-size:13px; display:flex; gap:14px; align-items:center; margin:4px 0 16px}
-    .pill{border:1px solid var(--border); padding:4px 10px; border-radius:999px}
-    table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:10px; border:1px solid var(--border)}
-    thead th{font-weight:600; text-align:left; background:#1a1f39; color:#cfd5ff; padding:12px;}
-    tbody td{padding:12px; border-top:1px solid var(--border)}
-    tbody tr:hover{background:#141936}
-    .num{text-align:right; font-variant-numeric: tabular-nums}
-    .chg.up{color:var(--up); font-weight:600}
-    .chg.down{color:var(--down); font-weight:600}
-    .src{color:var(--muted); font-size:12px}
-    footer{color:var(--muted); font-size:12px; text-align:center; padding:24px}
-    .controls{display:flex; gap:10px; align-items:center; margin-bottom:10px}
-    button{background:var(--accent); color:white; border:0; padding:8px 12px; border-radius:8px; cursor:pointer}
-    button:disabled{opacity:.6; cursor:default}
-    a{color:#c9d2ff; text-decoration:none}
-    @media (max-width:640px){
-      thead th:nth-child(4), tbody td:nth-child(4){display:none} /* oculta fuente en móvil */
+    .logo {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+    .title-main {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: #94a3b8;
+      margin: 5px 0 20px;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      background-color: #1e293b;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 20px;
+      border-bottom: 1px solid #334155;
+    }
+    th {
+      background-color: #0f172a;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .positive {
+      color: #22c55e;
+    }
+    .negative {
+      color: #ef4444;
+    }
+    .update-info {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #94a3b8;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="9E8D3BA3-CFF9-492E-ABC2-AAC8E27037A1.jpeg" alt="iXO Logo" style="height:36px;">
-    <h1 style="margin:0;">iXO · Cripto Monitor</h1>
-  </div>
-  <a class="badge" href="https://github.com/jv000777/cripto/actions/workflows/fetch.yml" target="_blank" rel="noopener">
-    <img src="https://github.com/jv000777/cripto/actions/workflows/fetch.yml/badge.svg" alt="Estado del workflow">
-  </a>
-</header>
+  <header>
+    <img src="9E8D3BA3-CFF9-492E-ABC2-AAC8E27037A1.jpeg" alt="iXO Logo" class="logo">
+    <h1 class="title-main">iXO</h1>
+    <div class="subtitle">Cripto · Monitor</div>
+  </header>
 
-    <div class="card">
-      <div class="controls">
-        <button id="refreshBtn">Actualizar ahora</button>
-        <span class="meta">
-          <span class="pill">Última actualización: <strong id="upd">—</strong></span>
-          <span class="pill">Auto-refresh: cada 60s</span>
-        </span>
-      </div>
+  <div class="update-info" id="last-update"></div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Activo</th>
-            <th class="num">Precio (USD)</th>
-            <th class="num">Cambio 24h</th>
-            <th>Fuente</th>
-          </tr>
-        </thead>
-        <tbody id="rows">
-          <tr><td colspan="4" class="src">Cargando…</td></tr>
-        </tbody>
-      </table>
-
-      <p class="src" style="margin-top:12px">
-        JSON: <a href="Cuando nada es seguro, todo es posible." target="_blank" rel="noopener">/data/snapshot.json</a>
-      </p>
-    </div>
-
-    <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
-  </div>
+  <table id="crypto-table">
+    <thead>
+      <tr>
+        <th>Activo</th>
+        <th>Precio (USD)</th>
+        <th>Cambio 24h</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    // Mapa nombre->símbolo para tus 5 activos actuales
-    const SYMBOLS = { BITCOIN:'BTC', ETHEREUM:'ETH', SOLANA:'SOL', RIPPLE:'XRP', LITECOIN:'LTC' };
-    const nfUSD = new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits: 6 });
-    const nfPct = new Intl.NumberFormat('en-US', { signDisplay:'exceptZero', minimumFractionDigits:2, maximumFractionDigits:2 });
-
-    async function load() {
-      const btn = document.getElementById('refreshBtn');
-      btn.disabled = true;
+    async function loadData() {
       try {
-        const r = await fetch('data/snapshot.json', { cache: 'no-store' });
-        const j = await r.json();
-        document.getElementById('upd').textContent =
-          new Date(j.updated_at || Date.now()).toLocaleString();
+        const res = await fetch('data/snapshot.json');
+        const data = await res.json();
+        const tbody = document.querySelector("#crypto-table tbody");
+        tbody.innerHTML = "";
 
-        const data = j.assets || j; // soporta dos formatos
-        const entries = Object.entries(data);
+        for (const [key, value] of Object.entries(data)) {
+          const row = document.createElement("tr");
 
-        // Ordena por market cap aprox (si no hay, por nombre)
-        entries.sort((a,b) => (b[1]?.usd ?? 0) - (a[1]?.usd ?? 0));
+          const price = `$${value.usd.toLocaleString("en-US", {minimumFractionDigits: 2})}`;
+          const change = `${value.change_24h > 0 ? "+" : ""}${value.change_24h.toFixed(2)}%`;
+          const changeClass = value.change_24h > 0 ? "positive" : "negative";
 
-        const tbody = document.getElementById('rows');
-        tbody.innerHTML = '';
-        for (const [key, val] of entries) {
-          const sym = SYMBOLS[key] || key;
-          const price = val?.usd ?? null;
-          const chg = val?.change_24h;
-          const src = val?.source || '—';
+          row.innerHTML = `
+            <td>${key}</td>
+            <td>${price}</td>
+            <td class="${changeClass}">${change}</td>
+          `;
 
-          const tr = document.createElement('tr');
-
-          const tdA = document.createElement('td'); tdA.textContent = sym; tr.appendChild(tdA);
-
-          const tdP = document.createElement('td'); tdP.className='num';
-          tdP.textContent = price!=null ? nfUSD.format(price) : '—'; tr.appendChild(tdP);
-
-          const tdC = document.createElement('td'); tdC.className='num';
-          if (typeof chg === 'number') {
-            tdC.textContent = nfPct.format(chg) + '%';
-            tdC.classList.add('chg', chg >= 0 ? 'up' : 'down');
-          } else { tdC.textContent = '—'; }
-          tr.appendChild(tdC);
-
-          const tdS = document.createElement('td'); tdS.className='src'; tdS.textContent = src; tr.appendChild(tdS);
-
-          tbody.appendChild(tr);
+          tbody.appendChild(row);
         }
-      } catch (e) {
-        document.getElementById('rows').innerHTML =
-          `<tr><td colspan="4" class="src">Error cargando datos: ${e.message}</td></tr>`;
-      } finally {
-        btn.disabled = false;
+
+        const now = new Date();
+        document.getElementById("last-update").textContent = 
+          "Última actualización: " + now.toLocaleString("es-AR");
+      } catch (err) {
+        console.error("Error cargando datos", err);
       }
     }
 
-    document.getElementById('refreshBtn').addEventListener('click', load);
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // Carga inicial + auto-refresh cada 60s
-    load();
-    setInterval(load, 60000);
+    loadData();
+    setInterval(loadData, 60000);
   </script>
 </body>
 </html>
