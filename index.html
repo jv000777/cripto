@@ -98,18 +98,7 @@
             const data = await res.json();
             const tbody = document.querySelector("#crypto-table tbody");
             tbody.innerHTML = "";
-
-            // Si el JSON incluye timestamp, usarlo como última actualización
-            if (data.timestamp) {
-                const fecha = new Date(data.timestamp);
-                document.getElementById("last-update").textContent =
-                    "Última actualización: " + fecha.toLocaleString();
-            }
-
-            // Eliminar la clave 'timestamp' para que no aparezca como activo
-            const entries = Object.entries(data).filter(([key]) => key !== "timestamp");
-
-            for (const [name, info] of entries) {
+            for (const [name, info] of Object.entries(data)) {
                 const row = document.createElement("tr");
                 const price = Number(info.usd).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
                 const change = info.change_24h;
@@ -121,6 +110,8 @@
                 `;
                 tbody.appendChild(row);
             }
+            document.getElementById("last-update").textContent =
+                "Última actualización: " + new Date().toLocaleString();
         }
         fetchData();
         setInterval(fetchData, 60000);
