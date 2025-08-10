@@ -1,29 +1,29 @@
 {
-  "updated_at": "2025-08-10T11:51:10.479Z",
+  "updated_at": "2025-08-10T11:58:07.735Z",
   "assets": {
     "BITCOIN": {
-      "usd": 118427,
-      "change_24h": 1.07,
+      "usd": 118438,
+      "change_24h": 1.09,
       "source": "coingecko"
     },
     "ETHEREUM": {
-      "usd": 4211.97,
-      "change_24h": 0.35,
+      "usd": 4196.6,
+      "change_24h": 0.05,
       "source": "coingecko"
     },
     "SOLANA": {
-      "usd": 180.51,
-      "change_24h": -0.33,
+      "usd": 180.24,
+      "change_24h": -0.26,
       "source": "coingecko"
     },
     "RIPPLE": {
       "usd": 3.2,
-      "change_24h": -3.36,
+      "change_24h": -3.46,
       "source": "coingecko"
     },
     "LITECOIN": {
       "usd": 122.14,
-      "change_24h": -2.25,
+      "change_24h": -2.33,
       "source": "coingecko"
     }
   }
