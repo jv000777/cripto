@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>iXO · Cripto Monitor</title>
 
-  <!-- Favicon (opcional) -->
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32" />
 
   <style>
@@ -51,7 +51,7 @@
 <body>
   <header>
     <div class="A-wrap">
-      <img src="assets/A.png?v=1" alt="A iXO" class="A" />
+      <img src="assets/A.PNG?v=1" alt="A iXO" class="A" />
     </div>
     <h1 class="title">iXO</h1>
     <div class="subtitle">Cripto · Monitor</div>
@@ -84,14 +84,13 @@
     const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
     const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
-    // Excluir de la vista: stables y envueltos/derivados
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
     ]);
 
-    let FULL_LIST = [];     // lista completa (filtrada y ordenada)
-    let expanded = false;   // estado de MORE/LESS
+    let FULL_LIST = [];
+    let expanded = false;
 
     async function load() {
       try {
@@ -102,7 +101,6 @@
         document.getElementById('update-time').textContent =
           'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
 
-        // armar lista, filtrar excluidos, ordenar por MC desc
         FULL_LIST = Object.values(j.assets || {})
           .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
           .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
@@ -145,7 +143,6 @@
         `);
       }
 
-      // actualizar barra MORE/LESS
       const mb = document.getElementById('morebar');
       if (FULL_LIST.length <= 10) {
         mb.textContent = '—';
@@ -158,16 +155,13 @@
       }
     }
 
-    // Toggle
     document.getElementById('morebar').addEventListener('click', () => {
       if (FULL_LIST.length <= 10) return;
       expanded = !expanded;
       render();
-      // scroll a la barra para mantener contexto cuando se colapsa
       if (!expanded) document.getElementById('morebar').scrollIntoView({ behavior:'smooth', block:'center' });
     });
 
-    // Footer año, primera carga y refrescos
     document.getElementById('y').textContent = new Date().getFullYear();
     load();
     setInterval(load, 60000);
