@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>iXO · Cripto Monitor</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0f1624">
   <link rel="icon" href="assets/favicon.png" type="image/png" sizes="32x32">
@@ -16,58 +15,64 @@
       --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
-    header{padding:18px 0 4px;text-align:center}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
+    header{padding:16px 0 4px;text-align:center}
     .logo-wrap{display:inline-grid;place-items:center;width:84px;height:84px;margin:0 auto 6px;border-radius:50%;
       background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), transparent);
       box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);}
     .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-    .title{font-size:2.1rem;font-weight:800;margin:2px 0 0}
+    .title{font-size:2rem;font-weight:800;margin:2px 0 0}
     .subtitle{font-size:.9rem;color:var(--muted);margin:1px 0 6px}
-    .update-time{color:#9aa3b2;font-size:.8rem;margin:0 0 10px}
+    .update-time{color:#9aa3b2;font-size:.78rem;margin:0 0 10px}
 
-    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 18px}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 16px}
     .table-card{background:var(--card);border-radius:12px;overflow:hidden}
     table{width:100%;border-collapse:collapse;table-layout:fixed}
     thead th{background:var(--head);color:#d2dbff}
-    th,td{padding:8px 6px;text-align:left;border-top:1px solid var(--line);font-size:14px}
-    .name{display:flex;flex-direction:column;gap:2px}
-    .asset-line{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
-    .symbol{opacity:.95;font-weight:600;font-size:.9em}
-    .mc-inline{color:#aab3d1;font-size:12px;opacity:.95}
+    th,td{padding:8px 6px;text-align:left;border-top:1px solid var(--line);font-size:13.5px;line-height:1.15}
     .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 
-    .chip{display:inline-block;padding:3px 7px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
+    .name{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .asset-line{display:flex;gap:6px;align-items:baseline;min-width:0}
+    .asset-line strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+    .symbol{opacity:.95;font-weight:600;font-size:.9em;white-space:nowrap}
+    .mc-inline{color:#aab3d1;font-size:12px;opacity:.95;white-space:nowrap}
+    .price-inline{display:none;color:#e6ecff; font-variant-numeric:tabular-nums;}
+
+    .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
     .up{color:var(--up);background:rgba(34,197,94,.12)}
     .down{color:var(--down);background:rgba(239,68,68,.12)}
-    .chips{display:flex;gap:6px;justify-content:flex-end}
+    .chips-row{display:flex;gap:6px;justify-content:flex-end}
+    .chips-col{display:none;gap:6px;flex-direction:column;align-items:flex-end}
 
     .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:11px;cursor:pointer;
       user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
     .morebar small{opacity:.8;font-weight:400}
     footer{color:#9aa3b2;font-size:12px;text-align:center;padding:14px}
 
-    /* anchos: compacto para dejar aire a los % */
-    thead th.col-asset{width:38%}
-    thead th.col-price{width:34%}
+    /* desktop / tablet */
+    thead th.col-asset{width:40%}
+    thead th.col-price{width:32%}
     thead th.col-24h{width:14%}
     thead th.col-7d{width:14%}
 
-    /* MÓVIL: sin scroll lateral, 24h y 7d juntos en una celda */
+    /* Móvil: precio debajo del nombre; 24h y 7d apilados a la derecha */
     @media (max-width:480px){
-      thead th{font-size:12px}
-      th,td{padding:7px 5px;font-size:13px}
-      thead th.col-asset{width:44%}
-      thead th.col-price{width:34%}
-      thead th.col-24h{width:22%}
-      thead th.col-7d, td.td-7d{display:none} /* oculto columna 7d de la tabla */
+      th,td{padding:8px 6px;font-size:13px}
+      thead th.col-price{display:none}
+      td.td-price{display:none}
+      thead th.col-24h{width:26%}
+      thead th.col-7d{display:none}
+      .price-inline{display:block;font-size:12.5px;opacity:.95}
+      .chips-row{display:none}
+      .chips-col{display:flex}
     }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-wrap">
-      <img src="assets/A.PNG?v=4" alt="iXO" class="logo" />
+      <img src="assets/A.PNG?v=6" alt="iXO" class="logo" />
     </div>
     <h1 class="title">iXO</h1>
     <p class="subtitle">Cripto · Monitor</p>
@@ -81,7 +86,7 @@
           <tr>
             <th class="col-asset">Activo / MC</th>
             <th class="num col-price">Precio (USD)</th>
-            <th class="num col-24h">24h</th>
+            <th class="num col-24h">24h / 7d</th>
             <th class="num col-7d">7d</th>
           </tr>
         </thead>
@@ -96,24 +101,19 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    // ====== Formatters compactos ======
+    // ==== helpers ====
     const nfUSD2 = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});
-    const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
-    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
-
+    const nfPct  = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    const nfCap  = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
+    const pct = v => (typeof v === 'number') ? nfPct.format(v)+'%' : '—';
     function formatPrice(v){
       if (v == null) return '—';
-      if (Math.abs(v) >= 1) return nfUSD2.format(v);         // 2 decimales para >= 1
-      // < 1: hasta 6 decimales, sin ceros sobrantes
-      let s = v.toFixed(6);
-      s = s.replace(/0+$/,'').replace(/\.$/,'');
+      if (Math.abs(v) >= 1) return nfUSD2.format(v);           // ≥1 -> 2 dec
+      let s = v.toFixed(4).replace(/0+$/,'').replace(/\.$/,''); // <1 -> 4 dec
       return '$'+s;
     }
-    function pct(v){
-      return (typeof v === 'number') ? nfPct.format(v) + '%' : '—';
-    }
 
-    // ====== Filtro robusto stables/derivados ======
+    // Filtro stables y derivados
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "wrapped-bitcoin","weth","staked-ether","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -126,10 +126,11 @@
       return false;
     }
 
-    // ====== Data ======
+    // Estado
     let FULL_LIST = [];
     let expanded = false;
 
+    // Data desde CoinGecko
     async function fetchFromCoinGecko(){
       const url = 'https://api.coingecko.com/api/v3/coins/markets'
         + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
@@ -151,7 +152,7 @@
     async function load(){
       try{
         const arr = await fetchFromCoinGecko();
-        FULL_LIST = arr.filter(shouldExcludeRaw.bind(null,false) === false ? (x)=>!shouldExcludeRaw(x) : (x)=>!shouldExcludeRaw(x))
+        FULL_LIST = arr.filter(x=>!shouldExcludeRaw(x))
                        .map(mapItem)
                        .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));
         document.getElementById('update-time').textContent =
@@ -168,13 +169,18 @@
       tbody.innerHTML = '';
       const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
 
+      const isMobile = window.matchMedia('(max-width:480px)').matches;
+
       for (const x of list){
-        const p   = formatPrice(x.usd);
-        const p24 = pct(x.change_24h);
-        const p7  = pct(x.change_7d);
+        const price = formatPrice(x.usd);
+        const p24   = pct(x.change_24h);
+        const p7    = pct(x.change_7d);
         const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0?'up':'down') : '';
         const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0?'up':'down') : '';
-        const mcShort = x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
+        const mcS   = x.market_cap!=null ? nfCap.format(x.market_cap) : '—';
+
+        // precio inline (solo móvil)
+        const priceInline = isMobile ? `<div class="price-inline">${price}</div>` : '';
 
         tbody.insertAdjacentHTML('beforeend', `
           <tr>
@@ -183,18 +189,28 @@
                 <div class="asset-line">
                   <strong>${x.name || x.id}</strong>
                   <span class="symbol">(${x.symbol || ''})</span>
-                  <span class="mc-inline">· MC ${mcShort}</span>
+                  <span class="mc-inline">· MC ${mcS}</span>
                 </div>
+                ${priceInline}
               </div>
             </td>
-            <td class="num">${p}</td>
+
+            <td class="num td-price">${price}</td>
+
+            <!-- En móvil mostramos ambos chips en vertical en esta celda -->
             <td class="num">
-              <div class="chips">
+              <div class="chips-row">
+                <span class="chip ${cls24}" title="24h">${p24}</span>
+                <span class="chip ${cls7}"  title="7d">${p7}</span>
+              </div>
+              <div class="chips-col">
                 <span class="chip ${cls24}" title="24h">${p24}</span>
                 <span class="chip ${cls7}"  title="7d">${p7}</span>
               </div>
             </td>
-            <td class="num td-7d ${cls7}">${p7}</td>
+
+            <!-- En desktop mantenemos columna 7d separada -->
+            <td class="num td-7d"><span class="chip ${cls7}" title="7d">${p7}</span></td>
           </tr>
         `);
       }
