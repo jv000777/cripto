@@ -8,9 +8,8 @@
   <meta http-equiv="Expires" content="0" />
   <title>iXO · Cripto Monitor</title>
 
-  <!-- Favicon -->
+  <!-- Favicon (opcional) -->
   <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32" />
-  <link rel="icon" type="image/png" href="assets/favicon.png" sizes="48x48" />
 
   <style>
     :root{ --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
@@ -30,7 +29,7 @@
     header::after{content:"";display:block;height:1px;margin:14px auto 10px;width:92%;
       background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
     .wrap{max-width:var(--max);margin:0 auto;padding:0 16px 28px}
-    table{width:100%;margin:0 auto 30px;border-collapse:collapse;background:var(--card);
+    table{width:100%;margin:0 auto;border-collapse:collapse;background:var(--card);
           border-radius:12px;overflow:hidden}
     th,td{padding:12px 10px;text-align:left}
     th{background:var(--head);font-weight:700;color:#cfd5ff}
@@ -40,6 +39,12 @@
     .negative{color:var(--down);font-weight:700}
     .name{display:flex;flex-direction:column;gap:4px}
     .mc{font-size:12px;color:#aab3d1}
+    .morebar{
+      width:100%; background:var(--head); color:#cfd5ff; padding:12px; cursor:pointer; user-select:none;
+      border-top:1px solid var(--line);
+    }
+    .morebar:hover{filter:brightness(1.05)}
+    .morebar small{opacity:.85}
     footer{color:#9aa3b2;font-size:12px;padding:18px}
   </style>
 </head>
@@ -64,6 +69,11 @@
         </tr>
       </thead>
       <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" id="morebar" class="morebar">MORE <small>(mostrar todos)</small></td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 
@@ -74,10 +84,14 @@
     const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
     const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
+    // Excluir de la vista: stables y envueltos/derivados
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
     ]);
+
+    let FULL_LIST = [];     // lista completa (filtrada y ordenada)
+    let expanded = false;   // estado de MORE/LESS
 
     async function load() {
       try {
@@ -88,36 +102,12 @@
         document.getElementById('update-time').textContent =
           'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
 
-        let list = Object.values(j.assets || {});
-        list = list.filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()));
-        list.sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
-        list = list.slice(0, 10);
+        // armar lista, filtrar excluidos, ordenar por MC desc
+        FULL_LIST = Object.values(j.assets || {})
+          .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+          .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
 
-        const tbody = document.getElementById('rows');
-        tbody.innerHTML = '';
-        for (const x of list) {
-          const price = x.usd != null ? nfUSD.format(x.usd) : '—';
-          const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
-          const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
-          const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'positive':'negative') : '';
-          const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'positive':'negative') : '';
-          const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
-          const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
-
-          tbody.insertAdjacentHTML('beforeend', `
-            <tr>
-              <td>
-                <div class="name">
-                  <strong>${x.name || x.id}</strong>
-                  <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
-                </div>
-              </td>
-              <td class="num">${price}</td>
-              <td class="num ${cls24}">${c24}</td>
-              <td class="num ${cls7}">${c7}</td>
-            </tr>
-          `);
-        }
+        render();
       } catch (e) {
         console.error(e);
         document.getElementById('rows').innerHTML =
@@ -125,6 +115,59 @@
       }
     }
 
+    function render(){
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '';
+
+      const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
+
+      for (const x of list) {
+        const price = x.usd != null ? nfUSD.format(x.usd) : '—';
+        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
+        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
+        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'positive':'negative') : '';
+        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'positive':'negative') : '';
+        const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
+        const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>
+              <div class="name">
+                <strong>${x.name || x.id}</strong>
+                <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
+              </div>
+            </td>
+            <td class="num">${price}</td>
+            <td class="num ${cls24}">${c24}</td>
+            <td class="num ${cls7}">${c7}</td>
+          </tr>
+        `);
+      }
+
+      // actualizar barra MORE/LESS
+      const mb = document.getElementById('morebar');
+      if (FULL_LIST.length <= 10) {
+        mb.textContent = '—';
+        mb.style.cursor = 'default';
+        mb.style.opacity = .6;
+      } else {
+        mb.innerHTML = expanded ? 'LESS <small>(mostrar top-10)</small>' : 'MORE <small>(mostrar todos)</small>';
+        mb.style.cursor = 'pointer';
+        mb.style.opacity = 1;
+      }
+    }
+
+    // Toggle
+    document.getElementById('morebar').addEventListener('click', () => {
+      if (FULL_LIST.length <= 10) return;
+      expanded = !expanded;
+      render();
+      // scroll a la barra para mantener contexto cuando se colapsa
+      if (!expanded) document.getElementById('morebar').scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+
+    // Footer año, primera carga y refrescos
     document.getElementById('y').textContent = new Date().getFullYear();
     load();
     setInterval(load, 60000);
