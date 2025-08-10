@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hola, GitHub Pages</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 40px; max-width: 720px; }
+    h1 { margin-bottom: .4rem; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>¡Deploy exitoso! 🚀</h1>
+  <p>Esta página está servida por GitHub Pages.</p>
+  <p>Edita este <code>index.html</code> y haz commit para actualizar.</p>
+</body>
+</html>
