@@ -1,118 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>iXO · Cripto Monitor</title>
   <style>
-    body {
-      background-color: #0f172a;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      padding: 20px 0;
-    }
-    .logo {
-      height: 60px;
-      margin-bottom: 10px;
-    }
-    .title-main {
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    .subtitle {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      margin: 5px 0 20px;
-    }
-    table {
-      margin: 0 auto;
-      border-collapse: collapse;
-      background-color: #1e293b;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 12px 20px;
-      border-bottom: 1px solid #334155;
-    }
-    th {
-      background-color: #0f172a;
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    .positive {
-      color: #22c55e;
-    }
-    .negative {
-      color: #ef4444;
-    }
-    .update-info {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      color: #94a3b8;
-    }
+    body{background:#0f172a;color:#fff;font-family:system-ui,Arial,sans-serif;margin:0}
+    header{padding:28px 16px;text-align:center}
+    .logo{height:64px;display:block;margin:0 auto 10px}
+    .title{font-size:42px;margin:0}
+    .subtitle{font-size:18px;color:#94a3b8;margin:6px 0 8px}
+    .update{color:#94a3b8;font-size:13px;margin-bottom:18px}
+    .wrap{max-width:980px;margin:0 auto;padding:0 16px 28px}
+    table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:10px;overflow:hidden}
+    thead th{background:#0b1220;color:#cfd5ff;text-align:left;padding:12px}
+    tbody td{padding:12px;border-top:1px solid #334155}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .up{color:#22c55e;font-weight:600}.down{color:#ef4444;font-weight:600}
+    footer{color:#94a3b8;text-align:center;font-size:12px;padding:20px}
   </style>
 </head>
 <body>
   <header>
-    <img src="9E8D3BA3-CFF9-492E-ABC2-AAC8E27037A1.jpeg" alt="iXO Logo" class="logo">
-    <h1 class="title-main">iXO</h1>
+    <img class="logo" src="assets/ixo-logo.jpg" alt="iXO" />
+    <h1 class="title">iXO</h1>
     <div class="subtitle">Cripto · Monitor</div>
+    <div class="update">Última actualización: <span id="upd">—</span></div>
   </header>
 
-  <div class="update-info" id="last-update"></div>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Activo</th>
+          <th class="num">Precio (USD)</th>
+          <th class="num">Cambio 24h</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="3">Cargando…</td></tr></tbody>
+    </table>
+  </div>
 
-  <table id="crypto-table">
-    <thead>
-      <tr>
-        <th>Activo</th>
-        <th>Precio (USD)</th>
-        <th>Cambio 24h</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
-    async function loadData() {
-      try {
-        const res = await fetch('data/snapshot.json');
-        const data = await res.json();
-        const tbody = document.querySelector("#crypto-table tbody");
-        tbody.innerHTML = "";
+    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    const SYMBOLS = {BITCOIN:'BTC',ETHEREUM:'ETH',SOLANA:'SOL',RIPPLE:'XRP',LITECOIN:'LTC'};
 
-        for (const [key, value] of Object.entries(data)) {
-          const row = document.createElement("tr");
+    async function load(){
+      try{
+        const r = await fetch('data/snapshot.json', {cache:'no-store'});
+        const j = await r.json();
+        document.getElementById('upd').textContent =
+          new Date(j.updated_at || Date.now()).toLocaleString();
 
-          const price = `$${value.usd.toLocaleString("en-US", {minimumFractionDigits: 2})}`;
-          const change = `${value.change_24h > 0 ? "+" : ""}${value.change_24h.toFixed(2)}%`;
-          const changeClass = value.change_24h > 0 ? "positive" : "negative";
+        const data = j.assets || j; // soporta /assets o raíz
+        const entries = Object.entries(data);
 
-          row.innerHTML = `
-            <td>${key}</td>
-            <td>${price}</td>
-            <td class="${changeClass}">${change}</td>
-          `;
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML='';
+        for(const [k,v] of entries){
+          const sym = SYMBOLS[k] || k;
+          const price = v?.usd ?? null;
+          const chg = v?.change_24h;
 
-          tbody.appendChild(row);
+          const tr = document.createElement('tr');
+
+          const tdA=document.createElement('td'); tdA.textContent=sym; tr.appendChild(tdA);
+
+          const tdP=document.createElement('td'); tdP.className='num';
+          tdP.textContent = price!=null ? nfUSD.format(price) : '—'; tr.appendChild(tdP);
+
+          const tdC=document.createElement('td'); tdC.className='num';
+          if(typeof chg==='number'){ tdC.textContent=nfPct.format(chg)+'%'; tdC.classList.add(chg>=0?'up':'down'); }
+          else { tdC.textContent='—'; }
+          tr.appendChild(tdC);
+
+          tbody.appendChild(tr);
         }
-
-        const now = new Date();
-        document.getElementById("last-update").textContent = 
-          "Última actualización: " + now.toLocaleString("es-AR");
-      } catch (err) {
-        console.error("Error cargando datos", err);
+      }catch(e){
+        document.getElementById('rows').innerHTML =
+          `<tr><td colspan="3">Error cargando datos: ${e.message}</td></tr>`;
       }
     }
-
-    loadData();
-    setInterval(loadData, 60000);
+    load(); setInterval(load, 60000);
+    document.getElementById('y').textContent=new Date().getFullYear();
   </script>
 </body>
 </html>
