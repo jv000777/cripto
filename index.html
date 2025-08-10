@@ -39,17 +39,19 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
   }
   th, td {
-    padding: 12px 10px;
+    padding: 12px 8px;
     text-align: left;
+    font-size: 14px;
+    word-wrap: break-word;
   }
   th.num, td.num {
     text-align: right;
   }
   thead th {
-    font-size: 14px;
+    font-size: 13px;
     color: #c9d1d9;
     border-bottom: 1px solid #30363d;
   }
@@ -61,20 +63,20 @@
   }
   .chip {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 12px;
     font-size: 13px;
     font-weight: bold;
+    white-space: nowrap;
   }
   .green { color: #3fb950; background-color: rgba(63,185,80,0.1); }
   .red { color: #f85149; background-color: rgba(248,81,73,0.1); }
 
   /* Ajustes para móvil */
   @media (max-width: 480px) {
+    th, td { font-size: 13px; padding: 10px 4px; }
     thead th { font-size: 12px; }
-    th, td { padding: 10px 6px; }
-    .chip { font-size: 12px; padding: 3px 8px; }
-    thead th.th-7d { display: table-cell; }
+    .chip { font-size: 12px; padding: 2px 6px; }
   }
 </style>
 </head>
@@ -89,10 +91,10 @@
 <table>
   <thead>
     <tr>
-      <th>Activo / <span style="color:#cfd5ff">MC</span></th>
-      <th class="num">Precio (USD)</th>
-      <th class="num">24h</th>
-      <th class="num th-7d">7d</th>
+      <th style="width:40%">Activo / <span style="color:#cfd5ff">MC</span></th>
+      <th style="width:25%" class="num">Precio (USD)</th>
+      <th style="width:17%" class="num">24h</th>
+      <th style="width:18%" class="num">7d</th>
     </tr>
   </thead>
   <tbody id="cryptoTable"></tbody>
@@ -115,8 +117,8 @@ function renderTable(data) {
   const tbody = document.getElementById('cryptoTable');
   tbody.innerHTML = '';
   data.forEach(coin => {
-    const row = document.createElement('tr');
     const mc = 'MC: $' + formatMarketCap(coin.market_cap);
+    const row = document.createElement('tr');
     row.innerHTML = `
       <td><strong>${coin.name}</strong><br><span style="color:#8b949e; font-size:12px">${mc}</span></td>
       <td class="num">$${formatPrice(coin.current_price)}</td>
