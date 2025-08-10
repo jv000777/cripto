@@ -1,107 +1,117 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>iXO · Cripto Monitor</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #0f1624;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-
-  header {
-    padding: 20px 0 10px 0;
-  }
-
-  .logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: contain;
-    background-color: transparent;
-  }
-
-  h1 {
-    margin: 10px 0 5px 0;
-    font-size: 2.5em;
-    font-weight: bold;
-  }
-
-  .subtitle {
-    font-size: 1em;
-    color: #bbb;
-    margin-bottom: 5px;
-  }
-
-  .update-time {
-    font-size: 0.8em;
-    color: #888;
-    margin-bottom: 20px;
-  }
-
-  table {
-    width: 95%;
-    margin: 0 auto 30px auto;
-    border-collapse: collapse;
-    background-color: #1a2235;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  th, td {
-    padding: 12px 8px;
-    text-align: left;
-  }
-
-  th {
-    background-color: #121a2b;
-    font-weight: bold;
-  }
-
-  tr:nth-child(even) {
-    background-color: #141c2e;
-  }
-
-  .positive {
-    color: #4caf50;
-  }
-
-  .negative {
-    color: #f44336;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>iXO · Cripto Monitor</title>
+  <style>
+    body{font-family:Arial, sans-serif;background:#0f1624;color:#fff;margin:0;text-align:center}
+    header{padding:20px 0 10px}
+    .logo{width:80px;height:80px;border-radius:50%;object-fit:contain;background:transparent}
+    h1{margin:10px 0 5px;font-size:2.6em;font-weight:800;letter-spacing:.5px}
+    .subtitle{font-size:1em;color:#bbb;margin-bottom:6px}
+    .update-time{font-size:.85em;color:#888;margin-bottom:20px}
+    table{width:95%;margin:0 auto 30px;border-collapse:collapse;background:#1a2235;border-radius:10px;overflow:hidden}
+    th,td{padding:12px 10px;text-align:left}
+    th{background:#121a2b;font-weight:700;color:#cfd5ff}
+    tr:nth-child(even){background:#141c2e}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .positive{color:#22c55e;font-weight:700}
+    .negative{color:#ef4444;font-weight:700}
+    .name{display:flex;flex-direction:column;gap:4px}
+    .mc{font-size:12px;color:#aab3d1}
+    footer{color:#9aa3b2;font-size:12px;padding:18px}
+  </style>
 </head>
 <body>
-<header>
-  <img src="logo.png" alt="Logo iXO" class="logo" />
-  <h1>iXO</h1>
-  <div class="subtitle">Cripto · Monitor</div>
-  <div class="update-time" id="update-time"></div>
-</header>
+  <header>
+    <img src="assets/logo.png" alt="Logo iXO" class="logo" />
+    <h1>iXO</h1>
+    <div class="subtitle">Cripto · Monitor</div>
+    <div class="update-time" id="update-time">Última actualización: —</div>
+  </header>
 
-<table id="crypto-table">
-  <thead>
-    <tr>
-      <th>Activo / MC</th>
-      <th>Precio (USD)</th>
-      <th>24h</th>
-      <th>7d</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Datos se llenan con fetch-prices.js -->
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Activo / MC</th>
+        <th class="num">Precio (USD)</th>
+        <th class="num">24h</th>
+        <th class="num">7d</th>
+      </tr>
+    </thead>
+    <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+  </table>
 
-<script src="fetch-prices.js"></script>
-<script>
-  document.getElementById("update-time").innerText =
-    "Última actualización: " + new Date().toLocaleString();
-</script>
+  <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
+
+  <script>
+    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+
+    // Excluir stables y tokens envueltos/derivados
+    const EXCLUDE_IDS = new Set([
+      "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+      "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
+    ]);
+
+    async function load() {
+      try {
+        const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
+        const j = await res.json();
+
+        // Fecha desde JSON
+        const last = j.updated_at || j.timestamp || null;
+        document.getElementById('update-time').textContent =
+          'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
+
+        // Lista y filtro
+        let list = Object.values(j.assets || {});
+        list = list.filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()));
+
+        // Orden por market cap y Top-10
+        list.sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
+        list = list.slice(0, 10);
+
+        // Render
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML = '';
+        for (const x of list) {
+          const price = x.usd != null ? nfUSD.format(x.usd) : '—';
+          const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
+          const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
+          const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'positive':'negative') : '';
+          const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'positive':'negative') : '';
+          const mcTxt = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
+
+          tbody.insertAdjacentHTML('beforeend', `
+            <tr>
+              <td>
+                <div class="name">
+                  <strong>${x.name || x.id}</strong>
+                  <span class="mc">MC: ${mcTxt}</span>
+                </div>
+              </td>
+              <td class="num">${price}</td>
+              <td class="num ${cls24}">${c24}</td>
+              <td class="num ${cls7}">${c7}</td>
+            </tr>
+          `);
+        }
+      } catch (e) {
+        console.error(e);
+        document.getElementById('rows').innerHTML =
+          '<tr><td colspan="4">Error al cargar</td></tr>';
+      }
+    }
+
+    document.getElementById('y').textContent = new Date().getFullYear();
+    load();
+    setInterval(load, 60000);
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
+  </script>
 </body>
 </html>
