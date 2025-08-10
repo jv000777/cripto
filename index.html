@@ -1,155 +1,204 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iXO - Cripto Monitor</title>
-<link rel="icon" type="image/png" href="assets/A.PNG">
-<style>
-  body {
-    background-color: #0d1117;
-    color: #e6edf3;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
-  header {
-    padding: 20px;
-  }
-  header img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-  }
-  h1 {
-    margin: 10px 0 0 0;
-    font-size: 28px;
-  }
-  h2 {
-    margin: 5px 0 15px 0;
-    font-size: 16px;
-    color: #8b949e;
-  }
-  .last-update {
-    font-size: 14px;
-    color: #8b949e;
-    margin-bottom: 15px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-  }
-  th, td {
-    padding: 12px 8px;
-    text-align: left;
-    font-size: 14px;
-    word-wrap: break-word;
-  }
-  th.num, td.num {
-    text-align: right;
-  }
-  thead th {
-    font-size: 13px;
-    color: #c9d1d9;
-    border-bottom: 1px solid #30363d;
-  }
-  tbody tr {
-    border-bottom: 1px solid #21262d;
-  }
-  tbody tr:hover {
-    background-color: #161b22;
-  }
-  .chip {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: bold;
-    white-space: nowrap;
-  }
-  .green { color: #3fb950; background-color: rgba(63,185,80,0.1); }
-  .red { color: #f85149; background-color: rgba(248,81,73,0.1); }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>iXO · Cripto Monitor</title>
 
-  /* Ajustes para móvil */
-  @media (max-width: 480px) {
-    th, td { font-size: 13px; padding: 10px 4px; }
-    thead th { font-size: 12px; }
-    .chip { font-size: 12px; padding: 2px 6px; }
-  }
-</style>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f1624">
+  <link rel="icon" href="assets/favicon.png">
+
+  <style>
+    :root{
+      --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
+      --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
+    header{padding:26px 0 8px;text-align:center}
+    .logo-wrap{display:inline-grid;place-items:center;width:96px;height:96px;margin:0 auto 10px;border-radius:50%;
+      background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), transparent);
+      box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);}
+    .logo{width:88px;height:88px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+    .title{font-size:2.4rem;font-weight:800;margin:6px 0 2px}
+    .subtitle{font-size:1rem;color:var(--muted);margin:0 0 8px}
+    .update-time{color:#9aa3b2;font-size:.86rem;margin:2px 0 14px}
+
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 12px 24px}
+    .table-card{background:var(--card);border-radius:12px;overflow:hidden}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    thead th{background:var(--head);color:#d2dbff}
+    th,td{padding:12px 8px;text-align:left;border-top:1px solid:var(--line)}
+    .name{display:flex;flex-direction:column;gap:4px}
+    .mc{font-size:12px;color:#aab3d1}
+    .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .chip{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:700;font-size:13px;white-space:nowrap}
+    .up{color:var(--up);background:rgba(34,197,94,.12)}
+    .down{color:var(--down);background:rgba(239,68,68,.12)}
+    .chip-7d{display:none;margin-left:6px}        /* se muestra en móvil */
+
+    .morebar{width:100%;background:var(--head);color:#cfd5ff;padding:14px;cursor:pointer;
+      user-select:none;border-top:1px solid var(--line);text-align:center;font-weight:600}
+    .morebar small{opacity:.8;font-weight:400}
+    footer{color:#9aa3b2;font-size:12px;text-align:center;padding:18px}
+
+    /* anchos de columnas */
+    thead th.col-asset{width:40%}
+    thead th.col-price{width:28%}
+    thead th.col-24h{width:16%}
+    thead th.col-7d{width:16%}
+
+    /* MÓVIL: sin scroll lateral, 7d aparece como chip bajo 24h */
+    @media (max-width:480px){
+      thead th{font-size:12px}
+      th,td{padding:10px 6px;font-size:13px}
+      .chip{font-size:12px;padding:2px 6px}
+      thead th.col-7d, td.td-7d{display:none} /* oculto columna 7d */
+      .chip-7d{display:inline-block}         /* muestro chip 7d junto a 24h */
+      thead th.col-asset{width:44%}
+      thead th.col-price{width:32%}
+      thead th.col-24h{width:24%}
+    }
+  </style>
 </head>
 <body>
-<header>
-  <img src="assets/A.PNG" alt="Logo iXO">
-  <h1>iXO</h1>
-  <h2>Cripto · Monitor</h2>
-  <div class="last-update" id="lastUpdate"></div>
-</header>
+  <header>
+    <div class="logo-wrap">
+      <img src="assets/A.PNG?v=3" alt="iXO" class="logo" />
+    </div>
+    <h1 class="title">iXO</h1>
+    <p class="subtitle">Cripto · Monitor</p>
+    <p class="update-time" id="update-time">Última actualización: —</p>
+  </header>
 
-<table>
-  <thead>
-    <tr>
-      <th style="width:40%">Activo / <span style="color:#cfd5ff">MC</span></th>
-      <th style="width:25%" class="num">Precio (USD)</th>
-      <th style="width:17%" class="num">24h</th>
-      <th style="width:18%" class="num">7d</th>
-    </tr>
-  </thead>
-  <tbody id="cryptoTable"></tbody>
-</table>
+  <div class="wrap">
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-asset">Activo / <span style="color:#cfd5ff">MC</span></th>
+            <th class="num col-price">Precio (USD)</th>
+            <th class="num col-24h">24h</th>
+            <th class="num col-7d">7d</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+        <tfoot>
+          <tr><td colspan="4" id="morebar" class="morebar">MORE <small>(mostrar todos)</small></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 
-<script>
-async function fetchData() {
-  try {
-    const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h,7d');
-    const data = await res.json();
-    renderTable(data);
-    document.getElementById('lastUpdate').textContent =
-      'Última actualización: ' + new Date().toLocaleString('es-AR');
-  } catch (error) {
-    console.error('Error obteniendo datos:', error);
-  }
-}
+  <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
-function renderTable(data) {
-  const tbody = document.getElementById('cryptoTable');
-  tbody.innerHTML = '';
-  data.forEach(coin => {
-    const mc = 'MC: $' + formatMarketCap(coin.market_cap);
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><strong>${coin.name}</strong><br><span style="color:#8b949e; font-size:12px">${mc}</span></td>
-      <td class="num">$${formatPrice(coin.current_price)}</td>
-      <td class="num">
-        <span class="chip ${coin.price_change_percentage_24h >= 0 ? 'green' : 'red'}">
-          ${coin.price_change_percentage_24h.toFixed(2)}%
-        </span>
-      </td>
-      <td class="num">
-        <span class="chip ${coin.price_change_percentage_7d_in_currency >= 0 ? 'green' : 'red'}">
-          ${coin.price_change_percentage_7d_in_currency.toFixed(0)}
-        </span>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
+  <script>
+    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
-function formatPrice(num) {
-  return num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 8});
-}
+    // Filtrar stables y derivados
+    const EXCLUDE_IDS = new Set([
+      "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+      "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
+    ]);
 
-function formatMarketCap(num) {
-  if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
-  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-  return num.toLocaleString();
-}
+    let FULL_LIST = [];
+    let expanded = false;
 
-fetchData();
-setInterval(fetchData, 60000);
-</script>
+    async function fetchFromCoinGecko(){
+      const url = 'https://api.coingecko.com/api/v3/coins/markets'
+        + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
+        + '&price_change_percentage=24h,7d';
+      const res = await fetch(url, { cache: 'no-store', headers:{ accept:'application/json' }});
+      if(!res.ok) throw new Error('CG HTTP '+res.status);
+      return await res.json();
+    }
+
+    function mapItem(c){
+      return {
+        id: c.id, name: c.name,
+        usd: c.current_price ?? null,
+        change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+        change_7d:  c.price_change_percentage_7d_in_currency  ?? null,
+        market_cap: c.market_cap ?? null
+      };
+    }
+
+    async function load() {
+      try {
+        let arr = await fetchFromCoinGecko();
+        let list = arr.map(mapItem)
+          .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+          .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
+        FULL_LIST = list;
+        document.getElementById('update-time').textContent =
+          'Última actualización: ' + new Date().toLocaleString();
+        render();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('rows').innerHTML =
+          '<tr><td colspan="4">Error al cargar</td></tr>';
+      }
+    }
+
+    function render(){
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '';
+      const list = expanded ? FULL_LIST : FULL_LIST.slice(0, 10);
+
+      for (const x of list) {
+        const price = x.usd != null ? nfUSD.format(x.usd) : '—';
+        const c24 = (typeof x.change_24h === 'number') ? nfPct.format(x.change_24h) + '%' : '—';
+        const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
+        const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'up':'down') : '';
+        const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'up':'down') : '';
+        const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
+        const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
+
+        tbody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>
+              <div class="name">
+                <strong>${x.name || x.id}</strong>
+                <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
+              </div>
+            </td>
+            <td class="num">${price}</td>
+            <td class="num">
+              <span class="chip ${cls24}">${c24}</span>
+              <span class="chip chip-7d ${cls7}" aria-label="7d">${c7}</span>
+            </td>
+            <td class="num td-7d ${cls7}">${c7}</td>
+          </tr>
+        `);
+      }
+
+      const mb = document.getElementById('morebar');
+      if (FULL_LIST.length <= 10) {
+        mb.textContent = '—';
+        mb.style.cursor = 'default';
+        mb.style.opacity = .6;
+      } else {
+        mb.innerHTML = expanded ? 'LESS <small>(mostrar top-10)</small>' : 'MORE <small>(mostrar todos)</small>';
+        mb.style.cursor = 'pointer';
+        mb.style.opacity = 1;
+      }
+    }
+
+    document.getElementById('morebar').addEventListener('click', () => {
+      if (FULL_LIST.length <= 10) return;
+      expanded = !expanded;
+      render();
+      if (!expanded) document.getElementById('morebar').scrollIntoView({ behavior:'smooth', block:'center' });
+    });
+
+    document.getElementById('y').textContent = new Date().getFullYear();
+    load();
+    setInterval(load, 60000);
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
+  </script>
 </body>
 </html>
