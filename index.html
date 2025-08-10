@@ -53,44 +53,50 @@
 
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
-  <script>
-    const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
-    const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
-    const SYMBOLS = {BITCOIN:'BTC',ETHEREUM:'ETH',SOLANA:'SOL',RIPPLE:'XRP',LITECOIN:'LTC'};
+  <<script>
+  const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+  const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
 
-    async function load(){
-      try{
-        const r = await fetch('data/snapshot.json', {cache:'no-store'});
-        const j = await r.json();
-        document.getElementById('upd').textContent =
-          new Date(j.updated_at || Date.now()).toLocaleString();
+  async function fetchData() {
+    // cache-busting para que siempre baje el último JSON
+    const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
+    const j = await res.json();
 
-        const data = j.assets || j; // soporta /assets o raíz
-        const tbody = document.getElementById('rows');
-        tbody.innerHTML='';
+    // updated_at o timestamp desde el JSON
+    const last = j.updated_at || j.timestamp || null;
+    document.getElementById("last-update").textContent =
+      "Última actualización: " + (last ? new Date(last).toLocaleString() : "—");
 
-        Object.entries(data).forEach(([k,v])=>{
-          const tr = document.createElement('tr');
-          const sym = SYMBOLS[k] || k;
-          const price = v?.usd ?? null;
-          const chg = v?.change_24h;
+    // soporta ambos formatos: {assets:{...}} o plano
+    const assets = j.assets || j;
+    const tbody = document.querySelector("#crypto-table tbody");
+    tbody.innerHTML = "";
 
-          tr.innerHTML = `
-            <td>${sym}</td>
-            <td class="num">${price!=null ? nfUSD.format(price) : '—'}</td>
-            <td class="num ${typeof chg==='number' ? (chg>=0?'up':'down') : ''}">
-              ${typeof chg==='number' ? nfPct.format(chg)+'%' : '—'}
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }catch(e){
-        document.getElementById('rows').innerHTML =
-          `<tr><td colspan="3">Error cargando datos: ${e.message}</td></tr>`;
-      }
+    for (const [name, info] of Object.entries(assets)) {
+      const usd = info?.usd ?? info?.price ?? null;
+      const chg = (typeof info?.change_24h === 'number') ? info.change_24h : null;
+      const cls = chg == null ? '' : (chg >= 0 ? 'positive' : 'negative');
+      const price = usd != null ? nfUSD.format(Number(usd)) : '—';
+      const change = chg == null ? '—' : chg.toFixed(2) + '%';
+
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${name}</td>
+          <td>${price}</td>
+          <td class="${cls}">${change}</td>
+        </tr>
+      `);
     }
-    load(); setInterval(load, 60000);
-    document.getElementById('y').textContent=new Date().getFullYear();
-  </script>
+  }
+
+  // carga inicial y cada 60s
+  fetchData();
+  setInterval(fetchData, 60000);
+
+  // si volvés a la pestaña, refresca al instante
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchData();
+  });
+</script>
 </body>
 </html>
