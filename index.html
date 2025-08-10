@@ -7,20 +7,37 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>iXO · Cripto Monitor</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" sizes="48x48" />
+
   <style>
-    body{font-family:Arial, sans-serif;background:#0f1624;color:#fff;margin:0;text-align:center}
-    header{padding:20px 0 10px}
-    .logo{width:80px;height:80px;border-radius:50%;object-fit:contain;background:transparent}
-    h1{margin:10px 0 5px;font-size:2.6em;font-weight:800;letter-spacing:.5px}
-    .subtitle{font-size:1em;color:#bbb;margin-bottom:6px}
-    .update-time{font-size:.85em;color:#888;margin-bottom:20px}
-    table{width:95%;margin:0 auto 30px;border-collapse:collapse;background:#1a2235;border-radius:10px;overflow:hidden}
+    :root{ --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
+           --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif;text-align:center}
+    header{padding:26px 0 8px}
+    .logo-wrap{
+      display:inline-grid;place-items:center;width:96px;height:96px;margin:0 auto 10px;border-radius:50%;
+      background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));
+      box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);
+    }
+    .logo{width:88px;height:88px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+    .title{font-size:2.7em;font-weight:800;letter-spacing:.5px;margin:8px 0 4px}
+    .subtitle{font-size:1em;color:var(--muted);margin-bottom:4px}
+    .update-time{color:#9aa3b2;font-size:.82em;margin-bottom:18px}
+    header::after{content:"";display:block;height:1px;margin:14px auto 10px;width:92%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 16px 28px}
+    table{width:100%;margin:0 auto 30px;border-collapse:collapse;background:var(--card);
+          border-radius:12px;overflow:hidden}
     th,td{padding:12px 10px;text-align:left}
-    th{background:#121a2b;font-weight:700;color:#cfd5ff}
+    th{background:var(--head);font-weight:700;color:#cfd5ff}
     tr:nth-child(even){background:#141c2e}
     .num{text-align:right;font-variant-numeric:tabular-nums}
-    .positive{color:#22c55e;font-weight:700}
-    .negative{color:#ef4444;font-weight:700}
+    .positive{color:var(--up);font-weight:700}
+    .negative{color:var(--down);font-weight:700}
     .name{display:flex;flex-direction:column;gap:4px}
     .mc{font-size:12px;color:#aab3d1}
     footer{color:#9aa3b2;font-size:12px;padding:18px}
@@ -28,31 +45,35 @@
 </head>
 <body>
   <header>
-    <img src="assets/logo.png" alt="Logo iXO" class="logo" />
-    <h1>iXO</h1>
+    <div class="logo-wrap">
+      <img src="assets/logo.png?v=1" alt="Logo iXO" class="logo" />
+    </div>
+    <h1 class="title">iXO</h1>
     <div class="subtitle">Cripto · Monitor</div>
     <div class="update-time" id="update-time">Última actualización: —</div>
   </header>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Activo / MC</th>
-        <th class="num">Precio (USD)</th>
-        <th class="num">24h</th>
-        <th class="num">7d</th>
-      </tr>
-    </thead>
-    <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
-  </table>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Activo / <span style="color:#cfd5ff">MC</span></th>
+          <th class="num">Precio (USD)</th>
+          <th class="num">24h</th>
+          <th class="num">7d</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+    </table>
+  </div>
 
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
   <script>
     const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
     const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+    const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
-    // Excluir stables y tokens envueltos/derivados
     const EXCLUDE_IDS = new Set([
       "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
       "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
@@ -63,20 +84,15 @@
         const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
         const j = await res.json();
 
-        // Fecha desde JSON
         const last = j.updated_at || j.timestamp || null;
         document.getElementById('update-time').textContent =
           'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
 
-        // Lista y filtro
         let list = Object.values(j.assets || {});
         list = list.filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()));
-
-        // Orden por market cap y Top-10
         list.sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
         list = list.slice(0, 10);
 
-        // Render
         const tbody = document.getElementById('rows');
         tbody.innerHTML = '';
         for (const x of list) {
@@ -85,14 +101,15 @@
           const c7  = (typeof x.change_7d  === 'number') ? nfPct.format(x.change_7d)  + '%' : '—';
           const cls24 = (typeof x.change_24h === 'number') ? (x.change_24h>=0 ? 'positive':'negative') : '';
           const cls7  = (typeof x.change_7d  === 'number') ? (x.change_7d >=0 ? 'positive':'negative') : '';
-          const mcTxt = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
+          const mcFull = x.market_cap != null ? nfUSD.format(x.market_cap) : '—';
+          const mcShort = x.market_cap != null ? nfCompact.format(x.market_cap) : '—';
 
           tbody.insertAdjacentHTML('beforeend', `
             <tr>
               <td>
                 <div class="name">
                   <strong>${x.name || x.id}</strong>
-                  <span class="mc">MC: ${mcTxt}</span>
+                  <span class="mc" title="${mcFull}">MC: ${mcShort}</span>
                 </div>
               </td>
               <td class="num">${price}</td>
