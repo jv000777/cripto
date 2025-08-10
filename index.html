@@ -5,27 +5,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>iXO · Cripto Monitor</title>
   <style>
-    body{background:#0f172a;color:#fff;font-family:system-ui,Arial,sans-serif;margin:0}
-    header{padding:28px 16px;text-align:center}
-    .logo{height:64px;display:block;margin:0 auto 10px}
-    .title{font-size:42px;margin:0}
-    .subtitle{font-size:18px;color:#94a3b8;margin:6px 0 8px}
-    .update{color:#94a3b8;font-size:13px;margin-bottom:18px}
-    .wrap{max-width:980px;margin:0 auto;padding:0 16px 28px}
-    table{width:100%;border-collapse:collapse;background:#1e293b;border-radius:10px;overflow:hidden}
-    thead th{background:#0b1220;color:#cfd5ff;text-align:left;padding:12px}
-    tbody td{padding:12px;border-top:1px solid #334155}
+    :root{
+      --bg:#0f172a; --card:#1e293b; --head:#0b1220; --muted:#94a3b8; --ink:#fff;
+      --up:#22c55e; --down:#ef4444; --line:#334155; --max:980px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
+    header{padding:26px 16px 10px;text-align:center}
+    .brand{display:inline-flex;flex-direction:column;align-items:center;gap:8px}
+    .logo{height:68px;width:68px;object-fit:contain;border-radius:10px}
+    /* cuando tengas PNG con fondo transparente, quedará perfecto sin borde */
+    .title{font-size:48px;font-weight:800;letter-spacing:.4px;line-height:1;margin:0}
+    .subtitle{font-size:17px;color:var(--muted);margin:6px 0 6px}
+    .update{color:var(--muted);font-size:13px;margin:0 0 18px}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 16px 28px}
+    table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
+    thead th{background:var(--head);color:#cfd5ff;text-align:left;padding:12px}
+    tbody td{padding:14px 12px;border-top:1px solid var(--line)}
     .num{text-align:right;font-variant-numeric:tabular-nums}
-    .up{color:#22c55e;font-weight:600}.down{color:#ef4444;font-weight:600}
-    footer{color:#94a3b8;text-align:center;font-size:12px;padding:20px}
+    .up{color:var(--up);font-weight:700}
+    .down{color:var(--down);font-weight:700}
+    footer{color:var(--muted);text-align:center;font-size:12px;padding:22px}
   </style>
 </head>
 <body>
   <header>
-    <img class="logo" src="assets/ixo-logo.jpg" alt="iXO" />
-    <h1 class="title">iXO</h1>
-    <div class="subtitle">Cripto · Monitor</div>
-    <div class="update">Última actualización: <span id="upd">—</span></div>
+    <div class="brand">
+      <img class="logo" src="assets/ixo-logo.jpg" alt="iXO" />
+      <h1 class="title">iXO</h1>
+      <div class="subtitle">Cripto · Monitor</div>
+    </div>
+    <p class="update">Última actualización: <span id="upd">—</span></p>
   </header>
 
   <div class="wrap">
@@ -56,29 +66,24 @@
           new Date(j.updated_at || Date.now()).toLocaleString();
 
         const data = j.assets || j; // soporta /assets o raíz
-        const entries = Object.entries(data);
-
         const tbody = document.getElementById('rows');
         tbody.innerHTML='';
-        for(const [k,v] of entries){
+
+        Object.entries(data).forEach(([k,v])=>{
+          const tr = document.createElement('tr');
           const sym = SYMBOLS[k] || k;
           const price = v?.usd ?? null;
           const chg = v?.change_24h;
 
-          const tr = document.createElement('tr');
-
-          const tdA=document.createElement('td'); tdA.textContent=sym; tr.appendChild(tdA);
-
-          const tdP=document.createElement('td'); tdP.className='num';
-          tdP.textContent = price!=null ? nfUSD.format(price) : '—'; tr.appendChild(tdP);
-
-          const tdC=document.createElement('td'); tdC.className='num';
-          if(typeof chg==='number'){ tdC.textContent=nfPct.format(chg)+'%'; tdC.classList.add(chg>=0?'up':'down'); }
-          else { tdC.textContent='—'; }
-          tr.appendChild(tdC);
-
+          tr.innerHTML = `
+            <td>${sym}</td>
+            <td class="num">${price!=null ? nfUSD.format(price) : '—'}</td>
+            <td class="num ${typeof chg==='number' ? (chg>=0?'up':'down') : ''}">
+              ${typeof chg==='number' ? nfPct.format(chg)+'%' : '—'}
+            </td>
+          `;
           tbody.appendChild(tr);
-        }
+        });
       }catch(e){
         document.getElementById('rows').innerHTML =
           `<tr><td colspan="3">Error cargando datos: ${e.message}</td></tr>`;
