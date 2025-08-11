@@ -25,7 +25,8 @@
   .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
   h1{font-size:2.6rem;margin:8px 0 4px}
   .sub{color:var(--muted);margin:0 0 6px}
-  .upd{color:#9aa3b2;font-size:.9rem;margin:0 0 18px}
+  .upd{color:#9aa3b2;font-size:.9rem;margin:0 0 8px}
+  .quote{color:#9aa3b2;font-size:.85rem;margin:0 0 18px;text-align:center;opacity:0.8;font-style:italic}
   header::after{content:"";display:block;height:1px;margin:14px auto 10px;width:92%;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
   .wrap{max-width:var(--max);margin:0 auto;padding:0 12px 28px}
@@ -38,12 +39,12 @@
   thead .hdr{display:flex;align-items:center;gap:6px;justify-content:flex-start}
   thead .hdr.right{justify-content:flex-end}
   .arrow{opacity:.55;font-size:.9em;min-width:1ch}
-  tbody td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px;} /* datos -1px */
+  tbody td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px;}
   .name{display:flex;flex-direction:column;gap:4px}
   .name .sym{opacity:.85}
-  .mc{font-size:11px;color:#aab3d1} /* -1px */
+  .mc{font-size:11px;color:#aab3d1}
   .num{text-align:right;font-variant-numeric:tabular-nums}
-  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--pill);min-width:74px;text-align:center;font-size:13px;} /* -1px */
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--pill);min-width:74px;text-align:center;font-size:13px;}
   .up{color:var(--up);background:rgba(34,197,94,.15)}
   .down{color:var(--down);background:rgba(239,68,68,.15)}
   .morebar{position:sticky;bottom:0;background:var(--head);color:#cfd5ff;padding:12px;
@@ -61,6 +62,7 @@
   <h1>iXO</h1>
   <p class="sub">Cripto · Monitor</p>
   <p class="upd" id="update-time">Última actualización: —</p>
+  <p class="quote">Cuando nada es seguro, todo es posible.</p>
 </header>
 
 <div class="wrap">
@@ -97,24 +99,21 @@ const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'
 
 /* ---------- EXCLUSIONES ---------- */
 const EXCLUDE_IDS = new Set([
-  // stables
   "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
-  // envueltos / derivados
   "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
 ]);
 
-/* ---------- SIEMPRE INCLUIR (tu billetera) ---------- */
-const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"]; // para PENGU correcto
+/* ---------- SIEMPRE INCLUIR ---------- */
+const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"];
 
 /* ---------- ESTADO ---------- */
-let FULL = [];         // lista completa normalizada
-let shown = 10;        // cuántos se muestran
-let sortKey = 'market_cap'; // 'market_cap' | 'change_24h' | 'change_7d'
-let sortDir = 'desc';       // 'asc' | 'desc'
+let FULL = [];
+let shown = 10;
+let sortKey = 'market_cap';
+let sortDir = 'desc';
 
 /* ---------- LIVE: CoinGecko cada 30s ---------- */
 async function fetchLive(){
-  // Top por MC
   const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
     + '&sparkline=false&price_change_percentage=24h,7d';
@@ -122,7 +121,6 @@ async function fetchLive(){
   if (!r1.ok) throw new Error('CG top HTTP '+r1.status);
   const top = await r1.json();
 
-  // Incluye ids extra (p.ej. PENGU) aunque no estén en el top200
   let extra = [];
   if (ALWAYS_INCLUDE_IDS.length){
     const urlExtra = 'https://api.coingecko.com/api/v3/coins/markets'
@@ -132,12 +130,10 @@ async function fetchLive(){
     if (r2.ok) extra = await r2.json();
   }
 
-  // Merge sin duplicados por id
   const map = new Map();
   [...top, ...extra].forEach(c => { if (c && c.id) map.set(c.id, c); });
   const data = [...map.values()];
 
-  // Normaliza a nuestro formato
   FULL = data
     .filter(c => c && c.id && !EXCLUDE_IDS.has(c.id.toLowerCase()))
     .map(c => ({
@@ -154,7 +150,7 @@ async function fetchLive(){
   document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
-/* ---------- BACKUP: snapshot si CG falla ---------- */
+/* ---------- BACKUP: snapshot ---------- */
 async function fetchSnapshot(){
   const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
   if (!res.ok) throw new Error('snapshot HTTP '+res.status);
@@ -237,7 +233,7 @@ function render(){
 /* ---------- CICLO ---------- */
 async function refresh(){
   try{
-    await fetchLive();   // 1) en vivo
+    await fetchLive();
   }catch(e){
     console.warn('Live CG falló, uso snapshot:', e);
     try{ await fetchSnapshot(); }catch(e2){
@@ -262,8 +258,8 @@ document.getElementById('morebar').addEventListener('click', ()=>{
 
 /* ---------- INIT ---------- */
 document.getElementById('y').textContent = new Date().getFullYear();
-refresh();                       // carga inicial
-setInterval(refresh, 30000);     // cada 30s
+refresh();
+setInterval(refresh, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
 </script>
 </body>
