@@ -12,7 +12,7 @@
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
     --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
-    --fs:14px; /* más chico para iPhone 16e */
+    --fs:13px; /* reducido 1px más */
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
@@ -29,29 +29,28 @@
   .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 28px}
   .card{position:relative;background:var(--card);border-radius:14px;overflow:hidden}
   table{width:100%;border-collapse:collapse;font-size:var(--fs);table-layout:fixed}
-  thead th, tbody td{padding:10px 8px}
+  thead th, tbody td{padding:9px 6px}
   thead th{background:var(--head);font-weight:700;color:#cfd5ff}
   tr:nth-child(even){background:#141c2e}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .name{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
   .sym{opacity:.85}
-  .mc{font-size:12px;color:#aab3d1}
-  .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#243042;font-weight:700}
+  .mc{font-size:11px;color:#aab3d1}
+  .pill{display:inline-block;padding:3px 6px;border-radius:999px;background:#243042;font-weight:700}
   .positive{color:#22c55e;background:rgba(34,197,94,.15)}
   .negative{color:#ef4444;background:rgba(239,68,68,.18)}
   .th-sortable{cursor:pointer;user-select:none;white-space:nowrap}
   .th-sortable .arrow{margin-left:4px;font-size:.9em;opacity:.75}
-  /* Sticky More/Less */
   .morebar{position:sticky;bottom:0;left:0;right:0;background:var(--head);color:#cfd5ff;
-           padding:11px;cursor:pointer;user-select:none;border-top:1px solid var(--line);text-align:center}
+           padding:10px;cursor:pointer;user-select:none;border-top:1px solid var(--line);text-align:center}
   .morebar small{opacity:.85}
   footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
-  /* columnas compactas */
-  th:nth-child(1), td:nth-child(1){width:44%}
-  th:nth-child(2), td:nth-child(2){width:26%}
+  /* columnas ajustadas */
+  th:nth-child(1), td:nth-child(1){width:42%} /* -2% */
+  th:nth-child(2), td:nth-child(2){width:28%} /* +2% */
   th:nth-child(3), td:nth-child(3){width:15%}
   th:nth-child(4), td:nth-child(4){width:15%}
-  @media (min-width:768px){ :root{ --fs:15px } }
+  @media (min-width:768px){ :root{ --fs:14px } }
 </style>
 </head>
 <body>
@@ -82,21 +81,14 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
 <script>
-  // ---------- Formatters
   const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
   const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
   const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
-
-  // Excluir derivados y stables
   const EXCLUDE_IDS = new Set([
     "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
     "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
   ]);
-
-  let FULL = [];         // datos filtrados
-  let shown = 10;        // mostrados
-  let sortKey = null;    // p24 | p7 | null (por MC implícito desde el snapshot)
-  let sortDir = -1;      // -1 desc, 1 asc
+  let FULL = [], shown = 10, sortKey = null, sortDir = -1;
 
   async function load(){
     try{
@@ -106,7 +98,6 @@
       document.getElementById('update-time').textContent =
         'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
 
-      // Filtrar y ordenar por MC desc (por defecto)
       FULL = Object.values(j.assets || {})
         .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
         .map(x => ({
@@ -121,7 +112,6 @@
 
       render();
     }catch(e){
-      console.error(e);
       document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
     }
   }
@@ -142,16 +132,13 @@
   function render(){
     const tbody = document.getElementById('rows');
     tbody.innerHTML = '';
-    const list = FULL.slice(0, shown);
-
-    for (const x of list){
+    FULL.slice(0, shown).forEach(x=>{
       const price = x.price!=null ? nfUSD.format(x.price) : '—';
       const c24 = x.p24==null ? '—' : nfPct.format(x.p24)+'%';
       const c7  = x.p7 ==null ? '—' : nfPct.format(x.p7 )+'%';
       const cls24 = x.p24==null ? '' : (x.p24>=0?'positive':'negative');
       const cls7  = x.p7 ==null ? '' : (x.p7 >=0?'positive':'negative');
       const mcShort = x.mc!=null ? nfCompact.format(x.mc) : '—';
-
       tbody.insertAdjacentHTML('beforeend', `
         <tr>
           <td>
@@ -165,25 +152,19 @@
           <td class="num"><span class="pill ${cls7}">${c7}</span></td>
         </tr>
       `);
-    }
-
+    });
     const mb = document.getElementById('morebar');
-    if (shown >= FULL.length) mb.textContent = 'LESS (top-10)';
-    else mb.textContent = `MORE (+${Math.min(5, FULL.length - shown)})`;
+    mb.textContent = shown >= FULL.length ? 'LESS (top-10)' : `MORE (+${Math.min(5, FULL.length - shown)})`;
   }
 
-  // eventos
   document.getElementById('morebar').addEventListener('click', ()=>{
-    if (shown >= FULL.length) shown = 10;
-    else shown = Math.min(FULL.length, shown + 5);
+    shown = (shown >= FULL.length) ? 10 : Math.min(FULL.length, shown + 5);
     render();
   });
   document.querySelector('[data-sort="p24"]').addEventListener('click', ()=>sortBy('p24'));
   document.querySelector('[data-sort="p7"]').addEventListener('click',  ()=>sortBy('p7'));
-
   document.getElementById('y').textContent = new Date().getFullYear();
-  load();
-  setInterval(load, 60000);
+  load(); setInterval(load, 60000);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
 </script>
 </body>
