@@ -7,61 +7,56 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>iXO · Cripto Monitor</title>
-
 <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32" />
-
 <style>
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
     --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
-    --fs:15px; /* -1px para móvil */
+    --fs:14px; /* más chico para iPhone 16e */
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif;text-align:center}
-  header{padding:26px 0 8px}
-  .logo-wrap{display:inline-grid;place-items:center;width:96px;height:96px;margin:0 auto 10px;border-radius:50%;
-             background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));
-             box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25)}
-  .logo{width:88px;height:88px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
-  .title{font-size:2.7em;font-weight:800;letter-spacing:.5px;margin:8px 0 4px}
-  .subtitle{font-size:1em;color:var(--muted);margin-bottom:4px}
-  .update-time{color:#9aa3b2;font-size:.82em;margin-bottom:18px}
-  header::after{content:"";display:block;height:1px;margin:14px auto 10px;width:92%;
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
+  body{overflow-x:hidden}
+  header{padding:22px 0 8px;text-align:center}
+  .logo-wrap{display:inline-grid;place-items:center;width:92px;height:92px;margin:0 auto 8px;border-radius:50%;
+             background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0))}
+  .logo{width:84px;height:84px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+  .title{font-size:2.4em;font-weight:800;letter-spacing:.5px;margin:6px 0 2px}
+  .subtitle{font-size:.95em;color:var(--muted);margin-bottom:2px}
+  .update-time{color:#9aa3b2;font-size:.8em;margin-bottom:14px}
+  header::after{content:"";display:block;height:1px;margin:10px auto 10px;width:92%;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
-  .wrap{max-width:var(--max);margin:0 auto;padding:0 12px 28px}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 10px 28px}
   .card{position:relative;background:var(--card);border-radius:14px;overflow:hidden}
-  table{width:100%;border-collapse:collapse;font-size:var(--fs)}
-  th,td{padding:12px 10px;text-align:left}
-  thead th{background:var(--head);font-weight:700;color:#cfd5ff;position:sticky;top:0;z-index:2}
-  .th-sortable{cursor:pointer;user-select:none;white-space:nowrap}
-  .th-sortable small{opacity:.8}
-  .th-sortable .arrow{margin-left:6px;font-size:.9em;opacity:.75}
+  table{width:100%;border-collapse:collapse;font-size:var(--fs);table-layout:fixed}
+  thead th, tbody td{padding:10px 8px}
+  thead th{background:var(--head);font-weight:700;color:#cfd5ff}
   tr:nth-child(even){background:#141c2e}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#243042;font-weight:700}
-  .positive{color:#22c55e;background:rgba(34,197,94,.15)}
-  .negative{color:#ef4444;background:rgba(239,68,68,.18)}
-  .name{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+  .name{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
   .sym{opacity:.85}
   .mc{font-size:12px;color:#aab3d1}
-  .morebar{
-    position:sticky; bottom:0; left:0; right:0;
-    background:var(--head); color:#cfd5ff; padding:12px; cursor:pointer; user-select:none;
-    border-top:1px solid var(--line);
-  }
-  .morebar:hover{filter:brightness(1.05)}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#243042;font-weight:700}
+  .positive{color:#22c55e;background:rgba(34,197,94,.15)}
+  .negative{color:#ef4444;background:rgba(239,68,68,.18)}
+  .th-sortable{cursor:pointer;user-select:none;white-space:nowrap}
+  .th-sortable .arrow{margin-left:4px;font-size:.9em;opacity:.75}
+  /* Sticky More/Less */
+  .morebar{position:sticky;bottom:0;left:0;right:0;background:var(--head);color:#cfd5ff;
+           padding:11px;cursor:pointer;user-select:none;border-top:1px solid var(--line);text-align:center}
   .morebar small{opacity:.85}
   footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
-  @media (min-width:768px){
-    :root{ --fs:16px; }
-  }
+  /* columnas compactas */
+  th:nth-child(1), td:nth-child(1){width:44%}
+  th:nth-child(2), td:nth-child(2){width:26%}
+  th:nth-child(3), td:nth-child(3){width:15%}
+  th:nth-child(4), td:nth-child(4){width:15%}
+  @media (min-width:768px){ :root{ --fs:15px } }
 </style>
 </head>
 <body>
   <header>
-    <div class="logo-wrap">
-      <img class="logo" src="assets/A.PNG?v=2" alt="iXO" />
-    </div>
+    <div class="logo-wrap"><img class="logo" src="assets/A.PNG?v=3" alt="iXO" /></div>
     <h1 class="title">iXO</h1>
     <div class="subtitle">Cripto · Monitor</div>
     <div class="update-time" id="update-time">Última actualización: —</div>
@@ -72,14 +67,13 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th id="th-name">Activo / MC</th>
+            <th>Activo / MC</th>
             <th class="num">Precio (USD)</th>
             <th class="num th-sortable" data-sort="p24">24h <span class="arrow" id="arr24">↕</span></th>
             <th class="num th-sortable" data-sort="p7">7d <span class="arrow" id="arr7">↕</span></th>
-            <th class="num th-sortable" data-sort="mc">MC <small>(cap)</small> <span class="arrow" id="arrmc">↕</span></th>
           </tr>
         </thead>
-        <tbody id="rows"><tr><td colspan="5">Cargando…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
       </table>
       <div id="morebar" class="morebar">MORE <small>(+5)</small></div>
     </div>
@@ -88,7 +82,7 @@
   <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
 <script>
-  // ----- Formatters
+  // ---------- Formatters
   const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
   const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
   const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
@@ -99,116 +93,94 @@
     "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
   ]);
 
-  let FULL = [];          // lista completa (filtrada)
-  let shown = 10;         // cuántos se muestran
-  let sortKey = "mc";     // mc | p24 | p7
-  let sortDir = -1;       // 1 asc, -1 desc
+  let FULL = [];         // datos filtrados
+  let shown = 10;        // mostrados
+  let sortKey = null;    // p24 | p7 | null (por MC implícito desde el snapshot)
+  let sortDir = -1;      // -1 desc, 1 asc
 
-  async function load() {
-    try {
+  async function load(){
+    try{
       const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
       const j = await res.json();
-
       const last = j.updated_at || j.timestamp || null;
       document.getElementById('update-time').textContent =
         'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
 
+      // Filtrar y ordenar por MC desc (por defecto)
       FULL = Object.values(j.assets || {})
         .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
         .map(x => ({
           name: x.name || x.id,
-          sym: (x.id && x.id.toUpperCase()) || "",
+          sym: (x.id || '').toUpperCase(),
           price: x.usd ?? null,
-          p24: (typeof x.change_24h === 'number') ? x.change_24h : null,
-          p7:  (typeof x.change_7d  === 'number') ? x.change_7d  : null,
+          p24: typeof x.change_24h === 'number' ? x.change_24h : null,
+          p7:  typeof x.change_7d  === 'number' ? x.change_7d  : null,
           mc:  x.market_cap ?? null
-        }));
+        }))
+        .sort((a,b)=> (b.mc??0)-(a.mc??0));
 
       render();
-    } catch (e) {
+    }catch(e){
       console.error(e);
-      document.getElementById('rows').innerHTML = '<tr><td colspan="5">Error al cargar</td></tr>';
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
     }
   }
 
-  function sortData() {
-    FULL.sort((a,b) => {
-      const A = a[sortKey], B = b[sortKey];
-      if (A == null && B == null) return 0;
-      if (A == null) return 1; if (B == null) return -1;
-      return (A > B ? 1 : A < B ? -1 : 0) * sortDir;
+  function sortBy(key){
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
+    FULL.sort((a,b)=>{
+      const A=a[key], B=b[key];
+      if (A==null && B==null) return 0;
+      if (A==null) return 1; if (B==null) return -1;
+      return (A>B?1:A<B?-1:0)*sortDir;
     });
+    document.getElementById('arr24').textContent = key==='p24' ? (sortDir===1?'↑':'↓') : '↕';
+    document.getElementById('arr7').textContent  = key==='p7'  ? (sortDir===1?'↑':'↓') : '↕';
+    render();
   }
 
-  function updateArrows() {
-    const m = { mc:'arrmc', p24:'arr24', p7:'arr7' };
-    for (const k of Object.keys(m)) {
-      const el = document.getElementById(m[k]);
-      el.textContent = (k === sortKey) ? (sortDir === 1 ? '↑' : '↓') : '↕';
-    }
-  }
-
-  function render() {
-    sortData();
-    updateArrows();
-
+  function render(){
     const tbody = document.getElementById('rows');
     tbody.innerHTML = '';
     const list = FULL.slice(0, shown);
 
-    for (const x of list) {
-      const price = x.price != null ? nfUSD.format(x.price) : '—';
-      const c24 = x.p24 == null ? '—' : nfPct.format(x.p24) + '%';
-      const c7  = x.p7  == null ? '—' : nfPct.format(x.p7)  + '%';
-      const cls24 = x.p24 == null ? '' : (x.p24 >= 0 ? 'positive' : 'negative');
-      const cls7  = x.p7  == null ? '' : (x.p7  >= 0 ? 'positive' : 'negative');
-      const mcFull = x.mc != null ? nfUSD.format(x.mc) : '—';
-      const mcShort = x.mc != null ? nfCompact.format(x.mc) : '—';
+    for (const x of list){
+      const price = x.price!=null ? nfUSD.format(x.price) : '—';
+      const c24 = x.p24==null ? '—' : nfPct.format(x.p24)+'%';
+      const c7  = x.p7 ==null ? '—' : nfPct.format(x.p7 )+'%';
+      const cls24 = x.p24==null ? '' : (x.p24>=0?'positive':'negative');
+      const cls7  = x.p7 ==null ? '' : (x.p7 >=0?'positive':'negative');
+      const mcShort = x.mc!=null ? nfCompact.format(x.mc) : '—';
 
       tbody.insertAdjacentHTML('beforeend', `
         <tr>
           <td>
             <div class="name">
-              <strong>${x.name}</strong> <span class="sym">(${x.sym})</span>
+              <div><strong>${x.name}</strong> <span class="sym">(${x.sym})</span></div>
               <span class="mc">· MC ${mcShort}</span>
             </div>
           </td>
           <td class="num">${price}</td>
           <td class="num"><span class="pill ${cls24}">${c24}</span></td>
           <td class="num"><span class="pill ${cls7}">${c7}</span></td>
-          <td class="num" title="${mcFull}">${mcShort}</td>
         </tr>
       `);
     }
 
-    // texto barra
-    const more = document.getElementById('morebar');
-    if (shown >= FULL.length) {
-      more.textContent = 'LESS (top-10)';
-    } else {
-      const remain = Math.min(5, FULL.length - shown);
-      more.textContent = `MORE (+${remain})`;
-    }
+    const mb = document.getElementById('morebar');
+    if (shown >= FULL.length) mb.textContent = 'LESS (top-10)';
+    else mb.textContent = `MORE (+${Math.min(5, FULL.length - shown)})`;
   }
 
-  // Barra MORE/LESS
-  document.getElementById('morebar').addEventListener('click', () => {
+  // eventos
+  document.getElementById('morebar').addEventListener('click', ()=>{
     if (shown >= FULL.length) shown = 10;
     else shown = Math.min(FULL.length, shown + 5);
     render();
   });
+  document.querySelector('[data-sort="p24"]').addEventListener('click', ()=>sortBy('p24'));
+  document.querySelector('[data-sort="p7"]').addEventListener('click',  ()=>sortBy('p7'));
 
-  // Sorting handlers
-  for (const th of document.querySelectorAll('.th-sortable')) {
-    th.addEventListener('click', () => {
-      const key = th.dataset.sort;              // 'mc' | 'p24' | 'p7'
-      if (sortKey === key) sortDir *= -1;       // alternar
-      else { sortKey = key; sortDir = -1; }     // por defecto desc
-      render();
-    });
-  }
-
-  // Footer year, first load & refresh
   document.getElementById('y').textContent = new Date().getFullYear();
   load();
   setInterval(load, 60000);
