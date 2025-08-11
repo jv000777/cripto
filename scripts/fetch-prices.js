@@ -1,55 +1,142 @@
-/* ---------- CONFIG ---------- */
-const API_URL = 'https://api.coingecko.com/api/v3/simple/price';
-const VS = 'usd';
+// Node 20 (ESM). Genera data/snapshot.json con: usd, change_24h, change_7d, market_cap
+import fs from "fs/promises";
 
-/* ---------- OVERRIDES DE ID ---------- */
-// Mapea símbolos o IDs mal detectados al ID correcto de CoinGecko
+/* ===================== Config listas ===================== */
+// Top ~50 por relevancia/MC (ids CoinGecko)
+const TOP50_IDS = [
+  "bitcoin","ethereum","tether","binancecoin","solana","ripple","usd-coin","staked-ether","cardano","dogecoin",
+  "avalanche-2","tron","shiba-inu","wrapped-bitcoin","polkadot","chainlink","polygon","bitcoin-cash","toncoin","uniswap",
+  "litecoin","internet-computer","dai","near","ethereum-classic","filecoin","aptos","leo-token","stellar","okb",
+  "vechain","render-token","monero","arbitrum","fantom","the-graph","hedera","immutable-x","maker","kaspa",
+  "gala","optimism","frax","sei-network","algorand","flow","thorchain","conflux-token","mina-protocol","worldcoin-wld"
+];
+
+// Tus monedas de billetera (pueden ser id/símbolo/nombre)
+const WALLET_RAW = [
+  "worldcoin", "pol", "bonk", "bome", "official-trump",
+  "streamflow", "pengu", "just-a-chill-guy", "goatseus-maximus",
+  "optimism", "solana", "ripple"
+];
+
+/* ===================== Overrides de IDs ===================== */
+// Soluciona ambigüedades o símbolos sin correspondencia directa
 const ID_OVERRIDES = {
-  'pengu': 'pudgy-penguins',       // Forzar que PENGU sea Pudgy Penguins
-  'pudgy-penguins': 'pudgy-penguins' // redundante pero seguro
+  worldcoin: "worldcoin-wld",
+  bome: "book-of-meme",
+  pol: "polygon-ecosystem-token",      // si prefieres MATIC: "matic-network"
+  pengu: "pudgy-penguins",             // << FIX: que PENGU sea Pudgy Penguins
 };
 
-/* ---------- FUNCIÓN PRINCIPAL ---------- */
-async function fetchPrices(assets) {
-  try {
-    // Normalizar IDs aplicando override
-    const ids = assets.map(sym => {
-      const low = sym.toLowerCase();
-      return ID_OVERRIDES[low] || low;
-    });
+/* ===================== Utilidades HTTP ===================== */
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    // Evitar duplicados
-    const uniqueIds = [...new Set(ids)];
-
-    // Llamada a CoinGecko
-    const url = `${API_URL}?ids=${uniqueIds.join(',')}&vs_currencies=${VS}&include_market_cap=true&include_24hr_change=true&include_7d_change=true`;
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
-    const data = await res.json();
-
-    // Mapear respuesta a formato interno
-    return assets.map(sym => {
-      const id = ID_OVERRIDES[sym.toLowerCase()] || sym.toLowerCase();
-      const info = data[id];
-      if (!info) return { symbol: sym, usd: null, market_cap: null, change_24h: null, change_7d: null };
-
-      return {
-        symbol: sym,
-        usd: info.usd ?? null,
-        market_cap: info.usd_market_cap ?? null,
-        change_24h: info.usd_24h_change ?? null,
-        change_7d: info.usd_7d_change ?? null
-      };
-    });
-  } catch (err) {
-    console.error('Error al obtener precios:', err);
-    return assets.map(sym => ({ symbol: sym, usd: null, market_cap: null, change_24h: null, change_7d: null }));
+async function fetchJson(url, tries = 3) {
+  let lastErr;
+  for (let i = 1; i <= tries; i++) {
+    try {
+      const r = await fetch(url, {
+        headers: { accept: "application/json", "user-agent": "gh-actions" }
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+      return await r.json();
+    } catch (e) {
+      lastErr = e;
+      await sleep(300 * i);
+    }
   }
+  throw lastErr;
 }
 
-/* ---------- EJEMPLO DE USO ---------- */
-(async () => {
-  const activos = ['BTC', 'ETH', 'PENGU', 'SOL'];
-  const precios = await fetchPrices(activos);
-  console.log(precios);
-})();
+/* ===================== Resolución de IDs ===================== */
+async function getAllCoinList() {
+  // Lista completa de ids/símbolos/nombres
+  return await fetchJson("https://api.coingecko.com/api/v3/coins/list?include_platform=false");
+}
+
+function buildLookup(list) {
+  const byId = new Map(), bySym = new Map(), byName = new Map();
+  for (const c of list) {
+    const id = (c.id || "").toLowerCase();
+    const s  = (c.symbol || "").toLowerCase();
+    const n  = (c.name || "").toLowerCase();
+    if (id) byId.set(id, c);
+    if (s) { if (!bySym.has(s)) bySym.set(s, []); bySym.get(s).push(c); }
+    if (n) { if (!byName.has(n)) byName.set(n, []); byName.get(n).push(c); }
+  }
+  return { byId, bySym, byName };
+}
+
+function resolveEntry(raw, lookup) {
+  const x = String(raw || "").trim().toLowerCase();
+  if (!x) return { raw, resolved: null, reason: "empty" };
+  if (ID_OVERRIDES[x]) return { raw, resolved: ID_OVERRIDES[x], via: "override" };
+  if (lookup.byId.has(x)) return { raw, resolved: x, via: "id" };
+
+  if (lookup.bySym.has(x)) {
+    const arr = lookup.bySym.get(x);
+    return { raw, resolved: arr[0].id, via: arr.length > 1 ? "symbol-ambiguous" : "symbol", candidates: arr.map(i => i.id) };
+  }
+  if (lookup.byName.has(x)) {
+    const arr = lookup.byName.get(x);
+    return { raw, resolved: arr[0].id, via: arr.length > 1 ? "name-ambiguous" : "name", candidates: arr.map(i => i.id) };
+  }
+  return { raw, resolved: null, reason: "not-found" };
+}
+
+/* ===================== Markets (24h, 7d) ===================== */
+async function getMarkets(ids) {
+  if (!ids.length) return [];
+  const url = "https://api.coingecko.com/api/v3/coins/markets"
+    + `?vs_currency=usd&ids=${ids.join(",")}&price_change_percentage=24h,7d&per_page=250`;
+  return await fetchJson(url);
+}
+
+/* ===================== Main ===================== */
+async function main() {
+  // 1) Resolver ids válidos
+  const all = await getAllCoinList();
+  const lookup = buildLookup(all);
+
+  const topValid = TOP50_IDS.filter(id => lookup.byId.has(id));
+  const walletRes = WALLET_RAW.map(w => resolveEntry(w, lookup));
+  const walletValid = walletRes.filter(r => r.resolved).map(r => r.resolved);
+
+  // 2) Unificar + deduplicar
+  const wanted = Array.from(new Set([...topValid, ...walletValid]));
+
+  // 3) Descargar markets (1 request)
+  const arr = await getMarkets(wanted);
+
+  // 4) Armar assets (clave = símbolo en MAYÚSCULAS)
+  const assets = {};
+  for (const c of arr) {
+    const sym = (c.symbol || c.id || "").toUpperCase();
+    assets[sym] = {
+      usd: c.current_price ?? null,
+      change_24h: c.price_change_percentage_24h_in_currency ?? null, // %
+      change_7d:  c.price_change_percentage_7d_in_currency  ?? null, // %
+      market_cap: c.market_cap ?? null,
+      id: c.id,
+      name: c.name,
+      source: "coingecko"
+    };
+  }
+
+  // 5) Meta / debug
+  const missing = walletRes.filter(r => !r.resolved).map(r => ({ raw: r.raw, reason: r.reason }));
+  const ambiguous = walletRes
+    .filter(r => r.candidates && r.candidates.length > 1)
+    .map(r => ({ raw: r.raw, resolved: r.resolved, candidates: r.candidates }));
+
+  // 6) Escribir snapshot
+  await fs.mkdir("data", { recursive: true });
+  await fs.writeFile("data/snapshot.json", JSON.stringify({
+    updated_at: new Date().toISOString(),
+    meta: { included_ids: wanted, wallet_resolved: walletRes, missing, ambiguous },
+    assets
+  }, null, 2));
+
+  console.log(`OK: ${Object.keys(assets).length} activos. missing=${missing.length} ambiguous=${ambiguous.length}`);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });
