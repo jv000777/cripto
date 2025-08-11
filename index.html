@@ -132,9 +132,10 @@
       document.getElementById("upd").textContent =
         (j.updated_at||j.timestamp) ? new Date(j.updated_at||j.timestamp).toLocaleString() : "—";
 
-      FULL = Object.values(j.assets||{})
-        .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
-        .sort((a,b)=> (b.market_cap??0) - (a.market_cap??0));
+      FULL = Object.entries(j.assets || {})
+  .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))  // <= aquí inyectamos la abreviatura
+  .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+  .sort((a,b) => (b.market_cap ?? 0) - (a.market_cap ?? 0));
 
       visibleCount = 10;
       render();
