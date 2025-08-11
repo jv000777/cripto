@@ -38,12 +38,12 @@
   thead .hdr{display:flex;align-items:center;gap:6px;justify-content:flex-start}
   thead .hdr.right{justify-content:flex-end}
   .arrow{opacity:.55;font-size:.9em;min-width:1ch}
-  tbody td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px;} /* reducido 1px */
+  tbody td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px;} /* datos -1px */
   .name{display:flex;flex-direction:column;gap:4px}
   .name .sym{opacity:.85}
-  .mc{font-size:11px;color:#aab3d1} /* reducido 1px */
+  .mc{font-size:11px;color:#aab3d1} /* -1px */
   .num{text-align:right;font-variant-numeric:tabular-nums}
-  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--pill);min-width:74px;text-align:center;font-size:13px;} /* reducido 1px */
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--pill);min-width:74px;text-align:center;font-size:13px;} /* -1px */
   .up{color:var(--up);background:rgba(34,197,94,.15)}
   .down{color:var(--down);background:rgba(239,68,68,.15)}
   .morebar{position:sticky;bottom:0;background:var(--head);color:#cfd5ff;padding:12px;
@@ -90,40 +90,85 @@
 <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
 <script>
+/* ---------- FORMATTERS ---------- */
 const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
 const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
 const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
+/* ---------- EXCLUSIONES ---------- */
 const EXCLUDE_IDS = new Set([
+  // stables
   "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+  // envueltos / derivados
   "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
 ]);
 
-let FULL = [];
-let shown = 10;
-let sortKey = 'market_cap';
-let sortDir = 'desc';
+/* ---------- SIEMPRE INCLUIR (tu billetera) ---------- */
+const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"]; // para PENGU correcto
 
-async function load(){
-  try{
-    const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
-    const j = await res.json();
-    const last = j.updated_at || j.timestamp || null;
-    document.getElementById('update-time').textContent =
-      'Última actualización: ' + (last ? new Date(last).toLocaleString() : '—');
+/* ---------- ESTADO ---------- */
+let FULL = [];         // lista completa normalizada
+let shown = 10;        // cuántos se muestran
+let sortKey = 'market_cap'; // 'market_cap' | 'change_24h' | 'change_7d'
+let sortDir = 'desc';       // 'asc' | 'desc'
 
-    FULL = Object.entries(j.assets || {})
-      .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))
-      .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()));
+/* ---------- LIVE: CoinGecko cada 30s ---------- */
+async function fetchLive(){
+  // Top por MC
+  const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
+    + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
+    + '&sparkline=false&price_change_percentage=24h,7d';
+  const r1 = await fetch(urlTop, { cache:'no-store', headers:{accept:'application/json'}});
+  if (!r1.ok) throw new Error('CG top HTTP '+r1.status);
+  const top = await r1.json();
 
-    render();
-  }catch(e){
-    console.error(e);
-    document.getElementById('rows').innerHTML =
-      '<tr><td colspan="4">Error al cargar</td></tr>';
+  // Incluye ids extra (p.ej. PENGU) aunque no estén en el top200
+  let extra = [];
+  if (ALWAYS_INCLUDE_IDS.length){
+    const urlExtra = 'https://api.coingecko.com/api/v3/coins/markets'
+      + `?vs_currency=usd&ids=${encodeURIComponent(ALWAYS_INCLUDE_IDS.join(','))}`
+      + '&sparkline=false&price_change_percentage=24h,7d';
+    const r2 = await fetch(urlExtra, { cache:'no-store', headers:{accept:'application/json'}});
+    if (r2.ok) extra = await r2.json();
   }
+
+  // Merge sin duplicados por id
+  const map = new Map();
+  [...top, ...extra].forEach(c => { if (c && c.id) map.set(c.id, c); });
+  const data = [...map.values()];
+
+  // Normaliza a nuestro formato
+  FULL = data
+    .filter(c => c && c.id && !EXCLUDE_IDS.has(c.id.toLowerCase()))
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      symbol: (c.symbol||'').toUpperCase(),
+      usd: c.current_price ?? null,
+      change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+      change_7d:  c.price_change_percentage_7d_in_currency ?? null,
+      market_cap: c.market_cap ?? null
+    }))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
+
+  document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
+/* ---------- BACKUP: snapshot si CG falla ---------- */
+async function fetchSnapshot(){
+  const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
+  if (!res.ok) throw new Error('snapshot HTTP '+res.status);
+  const j = await res.json();
+  document.getElementById('update-time').textContent =
+    'Última actualización: ' + (j.updated_at ? new Date(j.updated_at).toLocaleString() : '—');
+
+  FULL = Object.entries(j.assets || {})
+    .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))
+    .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
+}
+
+/* ---------- ORDEN ---------- */
 function setSort(key){
   if (sortKey === key){
     sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
@@ -150,14 +195,12 @@ function getVal(x,k){
   return NaN;
 }
 function updateArrows(){
-  const m = document.getElementById('arr-mc');
-  const d24 = document.getElementById('arr-24h');
-  const d7 = document.getElementById('arr-7d');
-  m.textContent = (sortKey==='market_cap') ? (sortDir==='desc'?'↓':'↑') : '';
-  d24.textContent = (sortKey==='change_24h') ? (sortDir==='desc'?'↓':'↑') : '';
-  d7.textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-mc').textContent  = (sortKey==='market_cap') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-24h').textContent = (sortKey==='change_24h') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
 }
 
+/* ---------- RENDER ---------- */
 function render(){
   const list = [...FULL].sort(cmp).slice(0, shown);
   const tbody = document.getElementById('rows');
@@ -175,7 +218,7 @@ function render(){
       <tr>
         <td>
           <div class="name">
-            <strong>${name} <span class="sym">(${(x.symbol||'').toUpperCase()})</span></strong>
+            <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
             <span class="mc">· MC ${mcShort}</span>
           </div>
         </td>
@@ -191,19 +234,37 @@ function render(){
   updateArrows();
 }
 
+/* ---------- CICLO ---------- */
+async function refresh(){
+  try{
+    await fetchLive();   // 1) en vivo
+  }catch(e){
+    console.warn('Live CG falló, uso snapshot:', e);
+    try{ await fetchSnapshot(); }catch(e2){
+      console.error('Snapshot también falló:', e2);
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
+      return;
+    }
+  }
+  render();
+}
+
+/* ---------- UI events ---------- */
 document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
 document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
 document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
+
 document.getElementById('morebar').addEventListener('click', ()=>{
   if (shown >= FULL.length){ shown = 10; }
   else { shown = Math.min(FULL.length, shown + 5); }
   render();
 });
 
+/* ---------- INIT ---------- */
 document.getElementById('y').textContent = new Date().getFullYear();
-load();
-setInterval(load, 60000);
-document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) load(); });
+refresh();                       // carga inicial
+setInterval(refresh, 30000);     // cada 30s
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
 </script>
 </body>
 </html>
