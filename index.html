@@ -12,7 +12,8 @@
 <style>
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
-    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
+    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
+    --pill:#233046;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
@@ -20,6 +21,7 @@
   .logoWrap{display:inline-grid;place-items:center;width:86px;height:86px;margin:0 auto 10px;border-radius:50%;
     background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));
     box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);
+    cursor:pointer;
   }
   .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
   h1{font-size:2.6rem;margin:8px 0 4px}
@@ -53,20 +55,28 @@
   footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
   @media (min-width:700px){ h1{font-size:3rem} }
 
-  /* Indicadores */
-  .ind-wrap{margin-top:8px; color:#cfd5ff}
-  .tf{font-weight:700; text-align:center; margin:6px 0 2px}
-  .ind-row{display:flex; align-items:center; gap:8px; justify-content:center; line-height:1.2}
-  .dot{width:8px;height:8px;border-radius:50%;}
-  .green{background:#22c55e}
-  .red{background:#ef4444}
-  .gray{background:#6b7280}
+  /* Modal imagen */
+  #imageModal {
+    display:none;
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.8);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+  }
+  #imageModal img {
+    max-width:90%;
+    max-height:90%;
+    border-radius:8px;
+  }
 </style>
 </head>
 
 <body>
 <header>
-  <div class="logoWrap"><img class="logo" src="assets/logo.png" alt="iXO" /></div>
+  <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
   <h1>iXO</h1>
   <p class="sub">Cripto · Monitor</p>
   <p class="upd" id="update-time">Última actualización: —</p>
@@ -99,6 +109,11 @@
 
 <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
+<!-- Modal -->
+<div id="imageModal">
+  <img src="assets/A.PNG" alt="iXO grande">
+</div>
+
 <script>
 /* ---------- FORMATTERS ---------- */
 const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
@@ -114,13 +129,11 @@ const EXCLUDE_IDS = new Set([
 /* ---------- SIEMPRE INCLUIR ---------- */
 const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"];
 
-/* ---------- ESTADO ---------- */
 let FULL = [];
 let shown = 10;
 let sortKey = 'market_cap';
 let sortDir = 'desc';
 
-/* ---------- LIVE (CoinGecko) ---------- */
 async function fetchLive(){
   const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
@@ -158,7 +171,6 @@ async function fetchLive(){
   document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
-/* ---------- SNAPSHOT BACKUP ---------- */
 async function fetchSnapshot(){
   const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
   if (!res.ok) throw new Error('snapshot HTTP '+res.status);
@@ -172,16 +184,23 @@ async function fetchSnapshot(){
     .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
 }
 
-/* ---------- ORDEN ---------- */
 function setSort(key){
-  if (sortKey === key){ sortDir = (sortDir === 'desc') ? 'asc' : 'desc'; }
-  else { sortKey = key; sortDir = 'desc'; }
+  if (sortKey === key){
+    sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
   render();
 }
 function cmp(a,b){
-  const va = getVal(a, sortKey), vb = getVal(b, sortKey);
-  const na = (va==null || Number.isNaN(va)), nb = (vb==null || Number.isNaN(vb));
-  if (na && nb) return 0; if (na) return 1; if (nb) return -1;
+  const va = getVal(a, sortKey);
+  const vb = getVal(b, sortKey);
+  const na = (va==null || Number.isNaN(va));
+  const nb = (vb==null || Number.isNaN(vb));
+  if (na && nb) return 0;
+  if (na) return 1;
+  if (nb) return -1;
   return sortDir==='desc' ? (vb-va) : (va-vb);
 }
 function getVal(x,k){
@@ -196,81 +215,18 @@ function updateArrows(){
   document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
 }
 
-/* ---------- INDICADORES (mock determinístico) ---------- */
-function seeded(name) {
-  // hash simple para valores reproducibles por activo
-  let h = 0; for (let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i))|0;
-  return (mod) => { h = (h*1664525 + 1013904223) | 0; return Math.abs(h % mod) / mod; };
-}
-function fakeIndicator(assetId){
-  // genera 1h,4h,1d
-  const rnd = seeded(assetId||'X');
-  const mk = () => ({
-    rsi: +(rnd(100)*100).toFixed(2),
-    mfi: +(rnd(100)*100).toFixed(2),
-    k:   +(rnd(100)*100).toFixed(2),
-    d:   +(rnd(100)*100).toFixed(2),
-  });
-  return { '1h': mk(), '4h': mk(), '1d': mk() };
-}
-// colores por umbral
-function dotClassForRSI(val){
-  if (val==null) return 'gray';
-  if (val > 90) return 'red';
-  if (val < 10) return 'green';
-  return 'gray';
-}
-function dotClassForMFI(val){
-  if (val==null) return 'gray';
-  if (val > 90) return 'red';
-  if (val < 10) return 'green';
-  return 'gray';
-}
-function dotClassForStoch(k,d){
-  if (k==null || d==null) return 'gray';
-  if (k>80 && d>80) return 'red';
-  if (k<20 && d<20) return 'green';
-  return 'gray';
-}
-
-/* ---------- RENDER ---------- */
 function render(){
   const list = [...FULL].sort(cmp).slice(0, shown);
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
-
   for (const x of list){
-    const price   = x.usd!=null ? nfUSD.format(x.usd) : '—';
-    const c24     = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
-    const c7      = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
-    const cls24   = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
-    const cls7    = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
-    const mcShort = x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
-    const name    = x.name || x.id || x.symbol || '';
-
-    // indicadores (mock para mostrar formato)
-    const ind = fakeIndicator(x.id||name);
-
-    const block = (tf, v) => {
-      const rsiDot = dotClassForRSI(v.rsi);
-      const mfiDot = dotClassForMFI(v.mfi);
-      const stDot  = dotClassForStoch(v.k, v.d);
-      return `
-        <div class="tf">${tf}</div>
-        <div class="ind-row">
-          <span class="dot ${rsiDot}"></span>
-          RSI: ${v.rsi.toFixed(2)}&nbsp;&nbsp; - &nbsp;&nbsp;
-          <span class="dot ${mfiDot}"></span>
-          MFI: ${v.mfi.toFixed(2)}
-        </div>
-        <div class="ind-row">
-          STCH: K${v.k.toFixed(2)} / D${v.d.toFixed(2)}
-        </div>
-        <div class="ind-row">
-          <span class="dot ${stDot}"></span> STCH 80/20
-        </div>
-      `;
-    };
+    const price = x.usd!=null ? nfUSD.format(x.usd) : '—';
+    const c24 = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
+    const c7  = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
+    const cls24 = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
+    const cls7  = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
+    const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
+    const name = x.name || x.id || x.symbol || '';
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -278,11 +234,6 @@ function render(){
           <div class="name">
             <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
             <span class="mc">· MC ${mcShort}</span>
-            <div class="ind-wrap">
-              ${block('1h', ind['1h'])}
-              ${block('4h', ind['4h'])}
-              ${block('1d', ind['1d'])}
-            </div>
           </div>
         </td>
         <td class="num">${price}</td>
@@ -291,20 +242,18 @@ function render(){
       </tr>
     `);
   }
-
   const mb = document.getElementById('morebar');
   const remaining = Math.max((FULL.length - shown), 0);
   mb.textContent = remaining>0 ? `MORE (+${Math.min(5,remaining)})` : 'LESS (top-10)';
   updateArrows();
 }
 
-/* ---------- CICLO ---------- */
 async function refresh(){
-  try{ await fetchLive(); }
-  catch(e){
+  try{
+    await fetchLive();
+  }catch(e){
     console.warn('Live CG falló, uso snapshot:', e);
-    try{ await fetchSnapshot(); }
-    catch(e2){
+    try{ await fetchSnapshot(); }catch(e2){
       console.error('Snapshot también falló:', e2);
       document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
       return;
@@ -313,21 +262,28 @@ async function refresh(){
   render();
 }
 
-/* ---------- UI ---------- */
 document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
 document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
 document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
+
 document.getElementById('morebar').addEventListener('click', ()=>{
   if (shown >= FULL.length){ shown = 10; }
   else { shown = Math.min(FULL.length, shown + 5); }
   render();
 });
 
-/* ---------- INIT ---------- */
 document.getElementById('y').textContent = new Date().getFullYear();
 refresh();
 setInterval(refresh, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
+
+/* Modal logo */
+document.getElementById('logoClick').addEventListener('click', function() {
+  document.getElementById('imageModal').style.display = 'flex';
+});
+document.getElementById('imageModal').addEventListener('click', function() {
+  this.style.display = 'none';
+});
 </script>
 </body>
 </html>
