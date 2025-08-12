@@ -273,8 +273,8 @@ document.getElementById('morebar').addEventListener('click', ()=>{
   render(); refreshIndicators();
 });
 
-/* ---------- INDICADORES (RSI8, MFI8, Stoch K8-sK3-D2) para 1h/4h/1D ---------- */
-const INDI = {}; // {SYM: { '1h':{rsi8,mfi8,k,d,kPrev,dPrev}, ... }}
+/* ---------- INDICADORES (RSI8, MFI8, Stoch K8-sK3-D2) 1h/4h/1D ---------- */
+const INDI = {}; // {SYM: { '1h':{rsi8,mfi8,k,d}, ... }}
 
 // Mapeo símbolo → par Binance (agrega excepciones si faltan)
 const BINANCE_MAP = {
@@ -327,11 +327,10 @@ function mfi(kl, period=8){
   return 100 - (100/(1+mr));
 }
 
-// Estocástico K=8, smoothK=3, D=2 (devolviendo también valores previos)
+// Estocástico K=8, smoothK=3, D=2  (devolvemos K y D actuales)
 function stochKD(kl, len=8, smoothK=3, dLen=2){
   const need = len + smoothK + dLen + 2;
-  if (kl.length < need) return {k:null,d:null,kPrev:null,dPrev:null};
-  // crudos %K en ventanas desplazadas
+  if (kl.length < need) return {k:null,d:null};
   const rawK = (offs=0) => {
     const win = kl.slice(-(len+offs), kl.length - offs);
     const lo = Math.min(...win.map(c=>c.low));
@@ -339,13 +338,12 @@ function stochKD(kl, len=8, smoothK=3, dLen=2){
     const cl = kl[kl.length-1-offs].close;
     return hi===lo ? 0 : ((cl - lo)/(hi - lo))*100;
   };
-  // kSlow actual = SMA de 3 rawK (offs 0..2)
-  const k0 = rawK(0), k1 = rawK(1), k2 = rawK(2), k3 = rawK(3);
+  const k0 = rawK(0), k1 = rawK(1), k2 = rawK(2);
   const kSlow = (k0 + k1 + k2)/3;
-  const kPrev = (k1 + k2 + k3)/3;      // kSlow previo
-  const d     = (kSlow + kPrev)/2;     // D=2 como SMA(2)
-  const dPrev = (kPrev + ((k2 + k3 + rawK(4))/3))/2; // D previo (aprox)
-  return { k: kSlow, d, kPrev, dPrev };
+  // %D = SMA(2) de K-slow actual y anterior (aprox)
+  const kPrev = (k1 + k2 + rawK(3))/3;
+  const d = (kSlow + kPrev)/2;
+  return { k: kSlow, d };
 }
 
 // Calcula para 1h/4h/1D de un símbolo
@@ -358,8 +356,8 @@ async function fetchIndicatorsForSymbol(sym){
       const closes = kl.map(c=>c.close);
       const rsi8 = rsiFromCloses(closes, 8);
       const mfi8 = mfi(kl, 8);
-      const {k,d,kPrev,dPrev} = stochKD(kl, 8, 3, 2);
-      out[tf] = { rsi8, mfi8, k, d, kPrev, dPrev };
+      const {k,d} = stochKD(kl, 8, 3, 2);
+      out[tf] = { rsi8, mfi8, k, d };
     }catch(e){ /* omitimos si falla */ }
   }
   if (Object.keys(out).length) INDI[sym] = out;
@@ -389,15 +387,20 @@ render = function(){
     const rsiClass = v => (typeof v==='number' && v>93) ? 'rsi-hot' : (typeof v==='number' && v<7) ? 'rsi-cold' : '';
     const dot = c => `<span class="dot ${c}"></span>`;
 
+    // Señal Stoch por zona: ambos >80 → rojo; ambos <20 → verde; resto → gris
+    const stZoneDot = (k,d) => {
+      if (typeof k==='number' && typeof d==='number'){
+        if (k>80 && d>80) return 'red';
+        if (k<20 && d<20) return 'green';
+      }
+      return 'gray';
+    };
+
     const block = (tfLabel) => {
       const d = ind[tfLabel]; if (!d) return '';
-      // señales
       const rsiDot = (typeof d.rsi8==='number' && d.rsi8>93) ? 'red' :
                      (typeof d.rsi8==='number' && d.rsi8<7)  ? 'green' : 'gray';
-      const currDiff = (d.k!=null && d.d!=null) ? (d.k - d.d) : null;
-      const prevDiff = (d.kPrev!=null && d.dPrev!=null) ? (d.kPrev - d.dPrev) : null;
-      const crossed = (currDiff!=null && prevDiff!=null && currDiff*prevDiff<0);
-      const stDot = crossed ? (currDiff>0 ? 'green' : 'red') : 'gray';
+      const stDot = stZoneDot(d.k, d.d);
 
       return `
         <div class="tf">
@@ -405,7 +408,7 @@ render = function(){
           RSI: <span class="${rsiClass(d.rsi8)}">${fmt(d.rsi8)}</span> - MFI: ${fmt(d.mfi8)}<br>
           STCH: K${fmt(d.k)} / D${fmt(d.d)}
           <div class="sigline">${dot(rsiDot)}<span>RSI EXT</span></div>
-          <div class="sigline">${dot(stDot)}<span>STCH CROSS</span></div>
+          <div class="sigline">${dot(stDot)}<span>STCH 80/20</span></div>
         </div>
       `;
     };
