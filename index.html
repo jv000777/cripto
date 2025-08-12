@@ -58,19 +58,15 @@
   /* Modal imagen */
   #imageModal {
     display:none;
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(0,0,0,0.8);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:999;
   }
-  #imageModal img {
-    max-width:90%;
-    max-height:90%;
-    border-radius:8px;
-  }
+  #imageModal img { max-width:90%; max-height:90%; border-radius:8px; }
+
+  /* Indicadores compactos debajo del precio */
+  .indi{font-size:11px;color:#aeb6cf;margin-top:4px;line-height:1.25}
+  .indi b{color:#cfd5ff}
+  .indi .tf{display:block} /* una línea por timeframe: 1h / 4h / 1D */
 </style>
 </head>
 
@@ -134,6 +130,7 @@ let shown = 10;
 let sortKey = 'market_cap';
 let sortDir = 'desc';
 
+/* ----- LIVE desde CoinGecko ----- */
 async function fetchLive(){
   const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
@@ -171,6 +168,7 @@ async function fetchLive(){
   document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
+/* ----- SNAPSHOT como respaldo ----- */
 async function fetchSnapshot(){
   const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
   if (!res.ok) throw new Error('snapshot HTTP '+res.status);
@@ -184,23 +182,19 @@ async function fetchSnapshot(){
     .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
 }
 
+/* ----- Orden ----- */
 function setSort(key){
   if (sortKey === key){
     sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
   } else {
-    sortKey = key;
-    sortDir = 'desc';
+    sortKey = key; sortDir = 'desc';
   }
   render();
 }
 function cmp(a,b){
-  const va = getVal(a, sortKey);
-  const vb = getVal(b, sortKey);
-  const na = (va==null || Number.isNaN(va));
-  const nb = (vb==null || Number.isNaN(vb));
-  if (na && nb) return 0;
-  if (na) return 1;
-  if (nb) return -1;
+  const va = getVal(a, sortKey), vb = getVal(b, sortKey);
+  const na = (va==null || Number.isNaN(va)), nb = (vb==null || Number.isNaN(vb));
+  if (na && nb) return 0; if (na) return 1; if (nb) return -1;
   return sortDir==='desc' ? (vb-va) : (va-vb);
 }
 function getVal(x,k){
@@ -215,6 +209,7 @@ function updateArrows(){
   document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
 }
 
+/* ----- Render ----- */
 function render(){
   const list = [...FULL].sort(cmp).slice(0, shown);
   const tbody = document.getElementById('rows');
@@ -236,7 +231,10 @@ function render(){
             <span class="mc">· MC ${mcShort}</span>
           </div>
         </td>
-        <td class="num">${price}</td>
+        <td class="num">
+          ${price}
+          <!-- Indicadores se inyectan aquí vía JS (.indi) -->
+        </td>
         <td class="num"><span class="${cls24}">${c24}</span></td>
         <td class="num"><span class="${cls7}">${c7}</span></td>
       </tr>
@@ -248,36 +246,157 @@ function render(){
   updateArrows();
 }
 
+/* ----- Ciclo de datos ----- */
 async function refresh(){
-  try{
-    await fetchLive();
-  }catch(e){
+  try{ await fetchLive(); }
+  catch(e){
     console.warn('Live CG falló, uso snapshot:', e);
-    try{ await fetchSnapshot(); }catch(e2){
-      console.error('Snapshot también falló:', e2);
-      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
-      return;
-    }
+    try{ await fetchSnapshot(); }
+    catch(e2){ console.error('Snapshot también falló:', e2);
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>'; return; }
   }
   render();
 }
 
+/* ----- Sorting + More/Less ----- */
 document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
 document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
 document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
-
 document.getElementById('morebar').addEventListener('click', ()=>{
-  if (shown >= FULL.length){ shown = 10; }
-  else { shown = Math.min(FULL.length, shown + 5); }
-  render();
+  if (shown >= FULL.length){ shown = 10; } else { shown = Math.min(FULL.length, shown + 5); }
+  render(); refreshIndicators(); // mantener indicadores al día al expandir
 });
 
+/* ---------- INDICADORES (RSI8, MFI8, Stoch K8-sK3-D2) para 1h/4h/1D ---------- */
+const INDI = {}; // cache: {SYM: { '1h':{rsi8,mfi8,k,d}, '4h':{...}, '1d':{...} }}
+
+// Mapeo símbolo → par Binance (agrega excepciones si faltan)
+const BINANCE_MAP = {
+  BTC:'BTCUSDT', ETH:'ETHUSDT', SOL:'SOLUSDT', XRP:'XRPUSDT', ADA:'ADAUSDT',
+  DOGE:'DOGEUSDT', LINK:'LINKUSDT', DOT:'DOTUSDT', BCH:'BCHUSDT', LTC:'LTCUSDT',
+  TON:'TONUSDT', TRX:'TRXUSDT', AVAX:'AVAXUSDT', MATIC:'MATICUSDT',
+  NEAR:'NEARUSDT', ICP:'ICPUSDT', FIL:'FILUSDT', APT:'APTUSDT',
+  ARB:'ARBUSDT', OP:'OPUSDT', WLD:'WLDUSDT', KAS:'KASUSDT', XLM:'XLMUSDT'
+};
+const TF_MAP = { '1h':'1h', '4h':'4h', '1d':'1d' };
+
+// Velas Binance
+async function getKlines(pair, interval='1h', limit=200){
+  const url = `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error('Binance '+r.status);
+  const raw = await r.json();
+  return raw.map(k=>({ open:+k[1], high:+k[2], low:+k[3], close:+k[4], volume:+k[5] }));
+}
+
+// RSI(8)
+function rsiFromCloses(closes, period=8){
+  if (closes.length < period+1) return null;
+  const gains=[], losses=[];
+  for(let i=1;i<closes.length;i++){
+    const ch = closes[i]-closes[i-1];
+    gains.push(ch>0?ch:0); losses.push(ch<0?-ch:0);
+  }
+  let ag = gains.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  let al = losses.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  for(let i=period;i<gains.length;i++){
+    ag = (ag*(period-1)+gains[i])/period;
+    al = (al*(period-1)+losses[i])/period;
+  }
+  const rs = ag/(al||1e-9);
+  return 100 - (100/(1+rs));
+}
+
+// MFI(8)
+function mfi(kl, period=8){
+  if (kl.length < period+1) return null;
+  const tp = i => (kl[i].high + kl[i].low + kl[i].close)/3;
+  let pos=0, neg=0;
+  for(let i=kl.length-period; i<kl.length; i++){
+    const mf = tp(i) * kl[i].volume;
+    const dir = tp(i) - tp(i-1);
+    if (dir >= 0) pos += mf; else neg += mf;
+  }
+  const mr = pos/Math.max(neg,1e-9);
+  return 100 - (100/(1+mr));
+}
+
+// Estocástico K=8, smoothK=3, D=2 (aprox SMA)
+function stochKD(kl, len=8, smoothK=3, dLen=2){
+  if (kl.length < len+smoothK+dLen) return {k:null,d:null};
+  const rawKs = [];
+  for(let i=0;i<smoothK;i++){
+    const win = kl.slice(-(len+i), kl.length - i);
+    const lo = Math.min(...win.map(c=>c.low));
+    const hi = Math.max(...win.map(c=>c.high));
+    const cl = kl[kl.length-1-i].close;
+    rawKs.push(hi===lo ? 0 : ((cl - lo)/(hi - lo))*100);
+  }
+  const kSlow = rawKs.reduce((a,b)=>a+b,0)/rawKs.length;
+  const kPrev = rawKs.length>1 ? (rawKs.slice(1).reduce((a,b)=>a+b,0)/(rawKs.length-1)) : kSlow;
+  const d = (kSlow + kPrev)/dLen; // SMA(2)
+  return { k:kSlow, d };
+}
+
+// Calcula para 1h/4h/1D de un símbolo
+async function fetchIndicatorsForSymbol(sym){
+  const pair = BINANCE_MAP[sym] || (sym+'USDT');
+  const out = {};
+  for (const tf of Object.keys(TF_MAP)){
+    try{
+      const kl = await getKlines(pair, TF_MAP[tf], 200);
+      const closes = kl.map(c=>c.close);
+      const rsi8 = rsiFromCloses(closes, 8);
+      const mfi8 = mfi(kl, 8);
+      const {k,d} = stochKD(kl, 8, 3, 2);
+      out[tf] = { rsi8, mfi8, k, d };
+    }catch(e){ /* omitimos si falla */ }
+  }
+  if (Object.keys(out).length) INDI[sym] = out;
+}
+
+// Refresca indicadores para visibles
+async function refreshIndicators(){
+  const list = [...FULL].sort(cmp).slice(0, shown);
+  await Promise.all(list.map(x => fetchIndicatorsForSymbol((x.symbol||'').toUpperCase())));
+  render(); // re-pinta con indicadores
+}
+
+// Inyección visual tras render
+const _renderOrig = render;
+render = function(){
+  _renderOrig();
+  const current = [...FULL].sort(cmp).slice(0, shown);
+  const rows = document.querySelectorAll('#rows tr');
+  rows.forEach((tr, i) => {
+    const item = current[i]; if (!item) return;
+    const sym = (item.symbol||'').toUpperCase();
+    const ind = INDI[sym]; if (!ind) return;
+    const tdPrice = tr.children[1]; if (!tdPrice || tdPrice.querySelector('.indi')) return;
+    const fmt = v => (typeof v==='number' && isFinite(v)) ? v.toFixed(2) : '—';
+    const line = (tf) =>
+      `<span class="tf"><b>${tf}</b> · RSI8: ${fmt(ind[tf]?.rsi8)} · MFI8: ${fmt(ind[tf]?.mfi8)} · Stoch8 K3/D2: ${fmt(ind[tf]?.k)} / ${fmt(ind[tf]?.d)}</span>`;
+    tdPrice.insertAdjacentHTML('beforeend', `
+      <div class="indi">
+        ${line('1h')}
+        ${line('4h')}
+        ${line('1d')}
+      </div>
+    `);
+  });
+};
+
+/* ----- INIT ----- */
 document.getElementById('y').textContent = new Date().getFullYear();
 refresh();
 setInterval(refresh, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
 
-/* Modal logo */
+// Indicadores: al cargar y cada 3 min
+setTimeout(refreshIndicators, 2000);
+setInterval(refreshIndicators, 180000);
+
+// Modal logo
 document.getElementById('logoClick').addEventListener('click', function() {
   document.getElementById('imageModal').style.display = 'flex';
 });
