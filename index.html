@@ -12,8 +12,7 @@
 <style>
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
-    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
-    --pill:#233046;
+    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
@@ -21,7 +20,6 @@
   .logoWrap{display:inline-grid;place-items:center;width:86px;height:86px;margin:0 auto 10px;border-radius:50%;
     background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));
     box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);
-    cursor:pointer;
   }
   .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
   h1{font-size:2.6rem;margin:8px 0 4px}
@@ -55,30 +53,20 @@
   footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
   @media (min-width:700px){ h1{font-size:3rem} }
 
-  /* Modal imagen */
-  #imageModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:999; }
-  #imageModal img { max-width:90%; max-height:90%; border-radius:8px; }
-
-  /* Indicadores bajo el precio */
-  .indi{font-size:11px;color:#aeb6cf;margin-top:6px;line-height:1.25}
-  .indi .tf{margin-top:4px}
-  .indi b{color:#cfd5ff}
-  .rsi-hot{color:#ef7777;font-weight:700}   /* RSI > 93 */
-  .rsi-cold{color:#4ade80;font-weight:700}  /* RSI < 7  */
-
-  /* Señales (bolitas) */
-  .sigline{margin-top:2px}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
-  .dot.green{background:#22c55e}
-  .dot.red{background:#ef4444}
-  .dot.gray{background:#94a3b8}
+  /* Indicadores */
+  .ind-wrap{margin-top:8px; color:#cfd5ff}
+  .tf{font-weight:700; text-align:center; margin:6px 0 2px}
+  .ind-row{display:flex; align-items:center; gap:8px; justify-content:center; line-height:1.2}
+  .dot{width:8px;height:8px;border-radius:50%;}
+  .green{background:#22c55e}
+  .red{background:#ef4444}
+  .gray{background:#6b7280}
 </style>
 </head>
 
 <body>
 <header>
-  <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
+  <div class="logoWrap"><img class="logo" src="assets/logo.png" alt="iXO" /></div>
   <h1>iXO</h1>
   <p class="sub">Cripto · Monitor</p>
   <p class="upd" id="update-time">Última actualización: —</p>
@@ -111,11 +99,6 @@
 
 <footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
 
-<!-- Modal -->
-<div id="imageModal">
-  <img src="assets/A.PNG" alt="iXO grande">
-</div>
-
 <script>
 /* ---------- FORMATTERS ---------- */
 const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
@@ -131,12 +114,13 @@ const EXCLUDE_IDS = new Set([
 /* ---------- SIEMPRE INCLUIR ---------- */
 const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"];
 
+/* ---------- ESTADO ---------- */
 let FULL = [];
 let shown = 10;
 let sortKey = 'market_cap';
 let sortDir = 'desc';
 
-/* ----- LIVE desde CoinGecko ----- */
+/* ---------- LIVE (CoinGecko) ---------- */
 async function fetchLive(){
   const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
     + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
@@ -174,7 +158,7 @@ async function fetchLive(){
   document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
-/* ----- SNAPSHOT como respaldo ----- */
+/* ---------- SNAPSHOT BACKUP ---------- */
 async function fetchSnapshot(){
   const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
   if (!res.ok) throw new Error('snapshot HTTP '+res.status);
@@ -188,13 +172,10 @@ async function fetchSnapshot(){
     .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
 }
 
-/* ----- Orden ----- */
+/* ---------- ORDEN ---------- */
 function setSort(key){
-  if (sortKey === key){
-    sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
-  } else {
-    sortKey = key; sortDir = 'desc';
-  }
+  if (sortKey === key){ sortDir = (sortDir === 'desc') ? 'asc' : 'desc'; }
+  else { sortKey = key; sortDir = 'desc'; }
   render();
 }
 function cmp(a,b){
@@ -215,19 +196,81 @@ function updateArrows(){
   document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
 }
 
-/* ----- Render (sin indicadores; se inyectan después) ----- */
+/* ---------- INDICADORES (mock determinístico) ---------- */
+function seeded(name) {
+  // hash simple para valores reproducibles por activo
+  let h = 0; for (let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i))|0;
+  return (mod) => { h = (h*1664525 + 1013904223) | 0; return Math.abs(h % mod) / mod; };
+}
+function fakeIndicator(assetId){
+  // genera 1h,4h,1d
+  const rnd = seeded(assetId||'X');
+  const mk = () => ({
+    rsi: +(rnd(100)*100).toFixed(2),
+    mfi: +(rnd(100)*100).toFixed(2),
+    k:   +(rnd(100)*100).toFixed(2),
+    d:   +(rnd(100)*100).toFixed(2),
+  });
+  return { '1h': mk(), '4h': mk(), '1d': mk() };
+}
+// colores por umbral
+function dotClassForRSI(val){
+  if (val==null) return 'gray';
+  if (val > 90) return 'red';
+  if (val < 10) return 'green';
+  return 'gray';
+}
+function dotClassForMFI(val){
+  if (val==null) return 'gray';
+  if (val > 90) return 'red';
+  if (val < 10) return 'green';
+  return 'gray';
+}
+function dotClassForStoch(k,d){
+  if (k==null || d==null) return 'gray';
+  if (k>80 && d>80) return 'red';
+  if (k<20 && d<20) return 'green';
+  return 'gray';
+}
+
+/* ---------- RENDER ---------- */
 function render(){
   const list = [...FULL].sort(cmp).slice(0, shown);
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
+
   for (const x of list){
-    const price = x.usd!=null ? nfUSD.format(x.usd) : '—';
-    const c24 = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
-    const c7  = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
-    const cls24 = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
-    const cls7  = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
-    const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
-    const name = x.name || x.id || x.symbol || '';
+    const price   = x.usd!=null ? nfUSD.format(x.usd) : '—';
+    const c24     = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
+    const c7      = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
+    const cls24   = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
+    const cls7    = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
+    const mcShort = x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
+    const name    = x.name || x.id || x.symbol || '';
+
+    // indicadores (mock para mostrar formato)
+    const ind = fakeIndicator(x.id||name);
+
+    const block = (tf, v) => {
+      const rsiDot = dotClassForRSI(v.rsi);
+      const mfiDot = dotClassForMFI(v.mfi);
+      const stDot  = dotClassForStoch(v.k, v.d);
+      return `
+        <div class="tf">${tf}</div>
+        <div class="ind-row">
+          <span class="dot ${rsiDot}"></span>
+          RSI: ${v.rsi.toFixed(2)}&nbsp;&nbsp; - &nbsp;&nbsp;
+          <span class="dot ${mfiDot}"></span>
+          MFI: ${v.mfi.toFixed(2)}
+        </div>
+        <div class="ind-row">
+          STCH: K${v.k.toFixed(2)} / D${v.d.toFixed(2)}
+        </div>
+        <div class="ind-row">
+          <span class="dot ${stDot}"></span> STCH 80/20
+        </div>
+      `;
+    };
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -235,211 +278,56 @@ function render(){
           <div class="name">
             <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
             <span class="mc">· MC ${mcShort}</span>
+            <div class="ind-wrap">
+              ${block('1h', ind['1h'])}
+              ${block('4h', ind['4h'])}
+              ${block('1d', ind['1d'])}
+            </div>
           </div>
         </td>
-        <td class="num">
-          ${price}
-          <!-- Indicadores se inyectan aquí vía JS (.indi) -->
-        </td>
+        <td class="num">${price}</td>
         <td class="num"><span class="${cls24}">${c24}</span></td>
         <td class="num"><span class="${cls7}">${c7}</span></td>
       </tr>
     `);
   }
+
   const mb = document.getElementById('morebar');
   const remaining = Math.max((FULL.length - shown), 0);
   mb.textContent = remaining>0 ? `MORE (+${Math.min(5,remaining)})` : 'LESS (top-10)';
   updateArrows();
 }
 
-/* ----- Ciclo de datos ----- */
+/* ---------- CICLO ---------- */
 async function refresh(){
   try{ await fetchLive(); }
   catch(e){
     console.warn('Live CG falló, uso snapshot:', e);
     try{ await fetchSnapshot(); }
-    catch(e2){ console.error('Snapshot también falló:', e2);
-      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>'; return; }
+    catch(e2){
+      console.error('Snapshot también falló:', e2);
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
+      return;
+    }
   }
   render();
 }
 
-/* ----- Sorting + More/Less ----- */
+/* ---------- UI ---------- */
 document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
 document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
 document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
 document.getElementById('morebar').addEventListener('click', ()=>{
-  if (shown >= FULL.length){ shown = 10; } else { shown = Math.min(FULL.length, shown + 5); }
-  render(); refreshIndicators();
+  if (shown >= FULL.length){ shown = 10; }
+  else { shown = Math.min(FULL.length, shown + 5); }
+  render();
 });
 
-/* ---------- INDICADORES (RSI8, MFI8, Stoch K8-sK3-D2) 1h/4h/1D ---------- */
-const INDI = {}; // {SYM: { '1h':{rsi8,mfi8,k,d}, ... }}
-
-// Mapeo símbolo → par Binance (agrega excepciones si faltan)
-const BINANCE_MAP = {
-  BTC:'BTCUSDT', ETH:'ETHUSDT', SOL:'SOLUSDT', XRP:'XRPUSDT', ADA:'ADAUSDT',
-  DOGE:'DOGEUSDT', LINK:'LINKUSDT', DOT:'DOTUSDT', BCH:'BCHUSDT', LTC:'LTCUSDT',
-  TON:'TONUSDT', TRX:'TRXUSDT', AVAX:'AVAXUSDT', MATIC:'MATICUSDT',
-  NEAR:'NEARUSDT', ICP:'ICPUSDT', FIL:'FILUSDT', APT:'APTUSDT',
-  ARB:'ARBUSDT', OP:'OPUSDT', WLD:'WLDUSDT', KAS:'KASUSDT', XLM:'XLMUSDT'
-};
-const TF_MAP = { '1h':'1h', '4h':'4h', '1d':'1d' };
-
-// Velas Binance
-async function getKlines(pair, interval='1h', limit=200){
-  const url = `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`;
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error('Binance '+r.status);
-  const raw = await r.json();
-  return raw.map(k=>({ open:+k[1], high:+k[2], low:+k[3], close:+k[4], volume:+k[5] }));
-}
-
-// RSI(8)
-function rsiFromCloses(closes, period=8){
-  if (closes.length < period+1) return null;
-  const gains=[], losses=[];
-  for(let i=1;i<closes.length;i++){
-    const ch = closes[i]-closes[i-1];
-    gains.push(ch>0?ch:0); losses.push(ch<0?-ch:0);
-  }
-  let ag = gains.slice(0,period).reduce((a,b)=>a+b,0)/period;
-  let al = losses.slice(0,period).reduce((a,b)=>a+b,0)/period;
-  for(let i=period;i<gains.length;i++){
-    ag = (ag*(period-1)+gains[i])/period;
-    al = (al*(period-1)+losses[i])/period;
-  }
-  const rs = ag/(al||1e-9);
-  return 100 - (100/(1+rs));
-}
-
-// MFI(8)
-function mfi(kl, period=8){
-  if (kl.length < period+1) return null;
-  const tp = i => (kl[i].high + kl[i].low + kl[i].close)/3;
-  let pos=0, neg=0;
-  for(let i=kl.length-period; i<kl.length; i++){
-    const mf = tp(i) * kl[i].volume;
-    const dir = tp(i) - tp(i-1);
-    if (dir >= 0) pos += mf; else neg += mf;
-  }
-  const mr = pos/Math.max(neg,1e-9);
-  return 100 - (100/(1+mr));
-}
-
-// Estocástico K=8, smoothK=3, D=2  (devolvemos K y D actuales)
-function stochKD(kl, len=8, smoothK=3, dLen=2){
-  const need = len + smoothK + dLen + 2;
-  if (kl.length < need) return {k:null,d:null};
-  const rawK = (offs=0) => {
-    const win = kl.slice(-(len+offs), kl.length - offs);
-    const lo = Math.min(...win.map(c=>c.low));
-    const hi = Math.max(...win.map(c=>c.high));
-    const cl = kl[kl.length-1-offs].close;
-    return hi===lo ? 0 : ((cl - lo)/(hi - lo))*100;
-  };
-  const k0 = rawK(0), k1 = rawK(1), k2 = rawK(2);
-  const kSlow = (k0 + k1 + k2)/3;
-  // %D = SMA(2) de K-slow actual y anterior (aprox)
-  const kPrev = (k1 + k2 + rawK(3))/3;
-  const d = (kSlow + kPrev)/2;
-  return { k: kSlow, d };
-}
-
-// Calcula para 1h/4h/1D de un símbolo
-async function fetchIndicatorsForSymbol(sym){
-  const pair = BINANCE_MAP[sym] || (sym+'USDT');
-  const out = {};
-  for (const tf of Object.keys(TF_MAP)){
-    try{
-      const kl = await getKlines(pair, TF_MAP[tf], 200);
-      const closes = kl.map(c=>c.close);
-      const rsi8 = rsiFromCloses(closes, 8);
-      const mfi8 = mfi(kl, 8);
-      const {k,d} = stochKD(kl, 8, 3, 2);
-      out[tf] = { rsi8, mfi8, k, d };
-    }catch(e){ /* omitimos si falla */ }
-  }
-  if (Object.keys(out).length) INDI[sym] = out;
-}
-
-// Refresca indicadores para visibles
-async function refreshIndicators(){
-  const list = [...FULL].sort(cmp).slice(0, shown);
-  await Promise.all(list.map(x => fetchIndicatorsForSymbol((x.symbol||'').toUpperCase())));
-  render(); // re-pinta con indicadores
-}
-
-// Inyección visual tras render
-const _renderOrig = render;
-render = function(){
-  _renderOrig();
-  const current = [...FULL].sort(cmp).slice(0, shown);
-  const rows = document.querySelectorAll('#rows tr');
-  rows.forEach((tr, i) => {
-    const item = current[i]; if (!item) return;
-    const sym = (item.symbol||'').toUpperCase();
-    const ind = INDI[sym]; if (!ind) return;
-    const tdPrice = tr.children[1]; if (!tdPrice) return;
-    if (tdPrice.querySelector('.indi')) return; // evita duplicar
-
-    const fmt = v => (typeof v==='number' && isFinite(v)) ? v.toFixed(2) : '—';
-    const rsiClass = v => (typeof v==='number' && v>93) ? 'rsi-hot' : (typeof v==='number' && v<7) ? 'rsi-cold' : '';
-    const dot = c => `<span class="dot ${c}"></span>`;
-
-    // Señal Stoch por zona: ambos >80 → rojo; ambos <20 → verde; resto → gris
-    const stZoneDot = (k,d) => {
-      if (typeof k==='number' && typeof d==='number'){
-        if (k>80 && d>80) return 'red';
-        if (k<20 && d<20) return 'green';
-      }
-      return 'gray';
-    };
-
-    const block = (tfLabel) => {
-      const d = ind[tfLabel]; if (!d) return '';
-      const rsiDot = (typeof d.rsi8==='number' && d.rsi8>93) ? 'red' :
-                     (typeof d.rsi8==='number' && d.rsi8<7)  ? 'green' : 'gray';
-      const stDot = stZoneDot(d.k, d.d);
-
-      return `
-        <div class="tf">
-          <b>${tfLabel}</b><br>
-          RSI: <span class="${rsiClass(d.rsi8)}">${fmt(d.rsi8)}</span> - MFI: ${fmt(d.mfi8)}<br>
-          STCH: K${fmt(d.k)} / D${fmt(d.d)}
-          <div class="sigline">${dot(rsiDot)}<span>RSI EXT</span></div>
-          <div class="sigline">${dot(stDot)}<span>STCH 80/20</span></div>
-        </div>
-      `;
-    };
-
-    tdPrice.insertAdjacentHTML('beforeend', `
-      <div class="indi">
-        ${block('1h')}
-        ${block('4h')}
-        ${block('1d')}
-      </div>
-    `);
-  });
-};
-
-/* ----- INIT ----- */
+/* ---------- INIT ---------- */
 document.getElementById('y').textContent = new Date().getFullYear();
 refresh();
 setInterval(refresh, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
-
-// Indicadores: al cargar y cada 3 min
-setTimeout(refreshIndicators, 2000);
-setInterval(refreshIndicators, 180000);
-
-// Modal logo
-document.getElementById('logoClick').addEventListener('click', function() {
-  document.getElementById('imageModal').style.display = 'flex';
-});
-document.getElementById('imageModal').addEventListener('click', function() {
-  this.style.display = 'none';
-});
 </script>
 </body>
 </html>
