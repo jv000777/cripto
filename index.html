@@ -12,8 +12,7 @@
 <style>
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
-    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px;
-    --pill:#233046;
+    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
@@ -56,21 +55,19 @@
   @media (min-width:700px){ h1{font-size:3rem} }
 
   /* Modal imagen */
-  #imageModal {
-    display:none;
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(0,0,0,0.8);
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-  }
-  #imageModal img {
-    max-width:90%;
-    max-height:90%;
-    border-radius:8px;
-  }
+  #imageModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);
+    justify-content:center;align-items:center;z-index:999}
+  #imageModal img{max-width:90%;max-height:90%;border-radius:8px}
+
+  /* Cuadraditos 1h/4h/1d/1w */
+  .miniTF{margin-top:8px}
+  .miniTF-labels{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start;
+    font-size:11px;color:#aab3d1;text-align:center;margin-bottom:4px}
+  .miniTF-sq{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start}
+  .sq{width:16px;height:16px;border-radius:4px;background:#3b445a;border:1px solid #2a3246;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:0 auto}
+  .sq.green{background:rgba(34,197,94,.85);border-color:rgba(34,197,94,.55)}
+  .sq.red{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.55)}
+  .sq.gray{background:#3b445a}
 </style>
 </head>
 
@@ -228,12 +225,27 @@ function render(){
     const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
     const name = x.name || x.id || x.symbol || '';
 
+    /* Bloque de 4 cuadraditos (neutrales por ahora) */
+    const mini = `
+      <div class="miniTF">
+        <div class="miniTF-labels">
+          <span>1h</span><span>4h</span><span>1d</span><span>1w</span>
+        </div>
+        <div class="miniTF-sq">
+          <span class="sq gray" data-tf="1h"></span>
+          <span class="sq gray" data-tf="4h"></span>
+          <span class="sq gray" data-tf="1d"></span>
+          <span class="sq gray" data-tf="1w"></span>
+        </div>
+      </div>`;
+
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
         <td>
           <div class="name">
             <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
             <span class="mc">· MC ${mcShort}</span>
+            ${mini}
           </div>
         </td>
         <td class="num">${price}</td>
@@ -249,9 +261,8 @@ function render(){
 }
 
 async function refresh(){
-  try{
-    await fetchLive();
-  }catch(e){
+  try{ await fetchLive(); }
+  catch(e){
     console.warn('Live CG falló, uso snapshot:', e);
     try{ await fetchSnapshot(); }catch(e2){
       console.error('Snapshot también falló:', e2);
@@ -278,10 +289,10 @@ setInterval(refresh, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
 
 /* Modal logo */
-document.getElementById('logoClick').addEventListener('click', function() {
+document.getElementById('logoClick').addEventListener('click', function(){
   document.getElementById('imageModal').style.display = 'flex';
 });
-document.getElementById('imageModal').addEventListener('click', function() {
+document.getElementById('imageModal').addEventListener('click', function(){
   this.style.display = 'none';
 });
 </script>
