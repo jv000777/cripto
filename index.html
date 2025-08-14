@@ -297,9 +297,9 @@ document.getElementById('imageModal').addEventListener('click', function(){
 });
 </script>
 <script>
-/* ================== MINI-TFs: PINTAR SIN CAMBIAR TU LAYOUT ================== */
+/* ================== MINI-TFs: SOLO ESTOCÁSTICO + FALLBACK (BINANCE → OKX) ================== */
 
-/** Mapeo de símbolo (texto entre paréntesis) -> par en Binance/OKX */
+/** Mapeo de símbolo (el texto entre paréntesis en tu tabla) -> par en Binance/OKX */
 const SYM_TO_PAIR = {
   BTC:{binance:'BTCUSDT', okx:'BTC-USDT'},
   ETH:{binance:'ETHUSDT', okx:'ETH-USDT'},
@@ -317,64 +317,30 @@ const SYM_TO_PAIR = {
   LTC:{binance:'LTCUSDT', okx:'LTC-USDT'},
   OP:{binance:'OPUSDT', okx:'OP-USDT'},
   WLD:{binance:'WLDUSDT', okx:'WLD-USDT'}
+  // Agrega aquí los que necesites (p. ej., TIA, RNDR, FET, etc.)
 };
 
-/** Timeframes y equivalentes en cada exchange */
+/** Timeframes equivalentes en cada exchange */
 const TF_TO_BINANCE = { '1h':'1h', '4h':'4h', '1d':'1d', '1w':'1w' };
-const TF_TO_OKX = { '1h':'1H', '4h':'4H', '1d':'1D', '1w':'1W' };
+const TF_TO_OKX     = { '1h':'1H', '4h':'4H', '1d':'1D', '1w':'1W' };
 
-/** Umbrales */
-const THRESHOLDS = {
-  rsiBuy:30, rsiSell:70,
-  mfiBuy:20, mfiSell:80,
-  stochBuy:20, stochSell:80
-};
+/** Umbrales SOLO para Estocástico %K */
+const STOCH_LOW  = 10; // <10 → verde
+const STOCH_HIGH = 90; // >90 → rojo
 
-/** Colores */
-function setSquare(el, signal){
+/** Colores (no cambia tamaños ni estructura) */
+function setSquare(el, color){
   el.classList.remove('green','red','gray');
-  el.classList.add(signal==='buy'?'green':signal==='sell'?'red':'gray');
+  el.classList.add(color); // 'green' | 'red' | 'gray'
 }
 
-/** Indicadores */
-function rsi(closes, period=14){
-  const gains=[], losses=[];
-  for(let i=1;i<closes.length;i++){
-    const d = closes[i]-closes[i-1];
-    gains.push(Math.max(d,0)); losses.push(Math.max(-d,0));
-  }
-  const ema = (arr,p)=>{
-    let k=2/(p+1), prev = arr.slice(0,p).reduce((a,b)=>a+b,0)/p;
-    for(let i=p;i<arr.length;i++) prev = arr[i]*k + prev*(1-k);
-    return prev;
-  };
-  const avgGain = ema(gains,period);
-  const avgLoss = ema(losses,period);
-  const rs = avgGain / (avgLoss || 1e-9);
-  return 100 - (100/(1+rs));
-}
-function mfi(highs,lows,closes,volumes,period=14){
-  const tp = highs.map((h,i)=>(h+lows[i]+closes[i])/3);
-  let pos=0, neg=0;
-  for(let i=tp.length-period;i<tp.length;i++){
-    const delta = tp[i]-tp[i-1];
-    const flow  = Math.abs(delta)*volumes[i];
-    if(delta>=0) pos+=flow; else neg+=flow;
-  }
-  const mr = pos / (neg || 1e-9);
-  return 100 - (100/(1+mr));
-}
+/** Estocástico %K (kPeriod=14) */
 function stochasticK(highs,lows,closes,kPeriod=14){
-  const start = closes.length - kPeriod;
+  const start = Math.max(closes.length - kPeriod, 0);
   const H = Math.max(...highs.slice(start));
   const L = Math.min(...lows.slice(start));
   const C = closes[closes.length-1];
-  return ((C-L)/((H-L)||1e-9))*100;
-}
-function signalFrom({rsiVal,mfiVal,stochK}){
-  const buy  = (rsiVal < THRESHOLDS.rsiBuy)  && (mfiVal < THRESHOLDS.mfiBuy)  && (stochK < THRESHOLDS.stochBuy);
-  const sell = (rsiVal > THRESHOLDS.rsiSell) && (mfiVal > THRESHOLDS.mfiSell) && (stochK > THRESHOLDS.stochSell);
-  return buy ? 'buy' : sell ? 'sell' : 'neutral';
+  return ((C - L) / ((H - L) || 1e-9)) * 100;
 }
 
 /** Fetch Binance */
@@ -384,23 +350,25 @@ async function getKlinesBinance(symbol, interval, limit=200){
   if(!r.ok) throw new Error('Binance '+r.status);
   const rows = await r.json();
   const highs = rows.map(r=>+r[2]), lows = rows.map(r=>+r[3]);
-  const closes = rows.map(r=>+r[4]), volumes = rows.map(r=>+r[5]);
+  const closes = rows.map(r=>+r[4]), volumes = rows.map(r=>+r[5]); // volumes no se usa, pero lo dejo por si luego vuelves a MFI
   return {highs,lows,closes,volumes};
 }
-/** Fetch OKX */
+
+/** Fetch OKX (orden inverso → lo revierto) */
 async function getKlinesOKX(symbol, interval, limit=200){
   const url = `https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=${interval}&limit=${limit}`;
   const r = await fetch(url);
   if(!r.ok) throw new Error('OKX '+r.status);
-  const rows = await r.json();
-  if(!rows.data) throw new Error('OKX sin data');
-  // OKX: [ts, o, h, l, c, vol, volCcy, ...]
-  const highs = rows.data.map(r=>+r[2]), lows = rows.data.map(r=>+r[3]);
-  const closes = rows.data.map(r=>+r[4]), volumes = rows.data.map(r=>+r[5]);
-  return {highs:highs.reverse(), lows:lows.reverse(), closes:closes.reverse(), volumes:volumes.reverse()};
+  const j = await r.json();
+  if(!j.data) throw new Error('OKX sin data');
+  const highs  = j.data.map(r=>+r[2]).reverse();
+  const lows   = j.data.map(r=>+r[3]).reverse();
+  const closes = j.data.map(r=>+r[4]).reverse();
+  const volumes= j.data.map(r=>+r[5]).reverse();
+  return {highs,lows,closes,volumes};
 }
 
-/** Evalúa un timeframe con fallback */
+/** Fallback: intenta Binance y si falla, usa OKX */
 async function getDataWithFallback(pairObj, tf){
   try{
     return await getKlinesBinance(pairObj.binance, TF_TO_BINANCE[tf]);
@@ -410,12 +378,11 @@ async function getDataWithFallback(pairObj, tf){
   }
 }
 
-/** Evalúa y pinta una fila */
+/** Evalúa y pinta una fila SOLO con Estocástico */
 async function evaluateAndPaintRow(tr){
   const symEl = tr.querySelector('.sym');
   if(!symEl) return;
-  const raw = (symEl.textContent||'').trim();
-  const sym = raw.replace(/[()]/g,'').toUpperCase();
+  const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
   const pairObj = SYM_TO_PAIR[sym];
   const squares = tr.querySelectorAll('.miniTF-sq .sq');
   if(!pairObj || squares.length!==4){
@@ -427,32 +394,38 @@ async function evaluateAndPaintRow(tr){
     const tf = tfs[i];
     const el = squares[i];
     try{
-      const {highs,lows,closes,volumes} = await getDataWithFallback(pairObj, tf);
-      const rsiVal = rsi(closes);
-      const mfiVal = mfi(highs,lows,closes,volumes);
-      const k      = stochasticK(highs,lows,closes);
-      const sig = signalFrom({rsiVal,mfiVal,stochK:k});
-      setSquare(el, sig==='buy'?'green':sig==='sell'?'red':'gray');
-      await new Promise(r=>setTimeout(r, 150)); // pausa anti-rate limit
+      const {highs,lows,closes} = await getDataWithFallback(pairObj, tf);
+      const k = stochasticK(highs,lows,closes);
+      const color = (k <= STOCH_LOW) ? 'green' : (k >= STOCH_HIGH) ? 'red' : 'gray';
+      setSquare(el, color);
+      await new Promise(r=>setTimeout(r, 150)); // pausa anti rate-limit
     }catch(e){
       setSquare(el,'gray');
-      console.warn('MiniTF', sym, tf, e);
+      console.warn('MiniTF (solo Stoch)', sym, tf, e);
     }
   }
 }
 
-/** Pinta todas las filas después del render() */
+/** Pinta todas las filas visibles después de tu render() */
 async function paintAllVisibleRows(){
   const trs = Array.from(document.querySelectorAll('#rows tr'));
   for(const tr of trs) await evaluateAndPaintRow(tr);
 }
 
-/** Hook a tu render() */
+/** Hook a tu render() sin romper nada */
 const __originalRender__ = render;
 render = function(){
   __originalRender__();
+  // Llamada asíncrona para colorear sin bloquear UI
   paintAllVisibleRows();
 };
+
+/* Primera capa por si este script carga después del primer render */
+if (document.readyState !== 'loading') {
+  setTimeout(()=>paintAllVisibleRows(), 300);
+} else {
+  document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
+}
 </script>
 </body>
 </html>
