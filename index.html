@@ -297,40 +297,35 @@ document.getElementById('imageModal').addEventListener('click', function(){
 });
 </script>
 <script>
-/* ================== MINI-TFs: SOLO ESTOCÁSTICO + FALLBACK (BINANCE → OKX) ================== */
+/* === MINI-TFs DINÁMICO · SOLO %K · UMBRAL 15/85 · Binance→OKX === */
 
-/** Mapeo de símbolo (el texto entre paréntesis en tu tabla) -> par en Binance/OKX */
+/** Mapeo dinámico (excepciones si difiere del símbolo mostrado) */
 function getPairFromSymbol(sym){
-  // Mapeo manual para casos especiales
   const manual = {
     POL:{binance:'POLUSDT', okx:'POL-USDT'},
     WLD:{binance:'WLDUSDT', okx:'WLD-USDT'},
-    // aquí agregás excepciones si el ticker no es igual al símbolo mostrado
+    OP: {binance:'OPUSDT',  okx:'OP-USDT'},
+    TIA:{binance:'TIAUSDT', okx:'TIA-USDT'},
+    RNDR:{binance:'RNDRUSDT',okx:'RNDR-USDT'},
+    FET:{binance:'FETUSDT', okx:'FET-USDT'}
   };
-  if (manual[sym]) return manual[sym];
-  
-  // Por defecto: asume que se llama igual en Binance y OKX
-  return {
-    binance: sym + 'USDT',
-    okx: sym + '-USDT'
-  };
+  return manual[sym] ?? { binance: sym + 'USDT', okx: sym + '-USDT' };
 }
 
-/** Timeframes equivalentes en cada exchange */
+/** Timeframes equivalentes */
 const TF_TO_BINANCE = { '1h':'1h', '4h':'4h', '1d':'1d', '1w':'1w' };
 const TF_TO_OKX     = { '1h':'1H', '4h':'4H', '1d':'1D', '1w':'1W' };
 
-/** Umbrales SOLO para Estocástico %K */
-const STOCH_LOW  = 10; // <15 → verde
-const STOCH_HIGH = 90; // >85 → rojo
+/** Umbrales SOLO para %K */
+const STOCH_LOW  = 15; // ≤15 → verde
+const STOCH_HIGH = 85; // ≥85 → rojo
 
-/** Colores (no cambia tamaños ni estructura) */
 function setSquare(el, color){
   el.classList.remove('green','red','gray');
-  el.classList.add(color); // 'green' | 'red' | 'gray'
+  el.classList.add(color);
 }
 
-/** Estocástico %K (kPeriod=14) */
+/** %K rápido (kPeriod=14) */
 function stochasticK(highs,lows,closes,kPeriod=14){
   const start = Math.max(closes.length - kPeriod, 0);
   const H = Math.max(...highs.slice(start));
@@ -345,90 +340,84 @@ async function getKlinesBinance(symbol, interval, limit=200){
   const r = await fetch(url);
   if(!r.ok) throw new Error('Binance '+r.status);
   const rows = await r.json();
-  const highs = rows.map(r=>+r[2]), lows = rows.map(r=>+r[3]);
-  const closes = rows.map(r=>+r[4]), volumes = rows.map(r=>+r[5]); // volumes no se usa, pero lo dejo por si luego vuelves a MFI
-  return {highs,lows,closes,volumes};
+  return { highs: rows.map(r=>+r[2]), lows: rows.map(r=>+r[3]), closes: rows.map(r=>+r[4]), src:'BIN' };
 }
-
-/** Fetch OKX (orden inverso → lo revierto) */
+/** Fetch OKX (revierte orden) */
 async function getKlinesOKX(symbol, interval, limit=200){
   const url = `https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=${interval}&limit=${limit}`;
   const r = await fetch(url);
   if(!r.ok) throw new Error('OKX '+r.status);
   const j = await r.json();
   if(!j.data) throw new Error('OKX sin data');
-  const highs  = j.data.map(r=>+r[2]).reverse();
-  const lows   = j.data.map(r=>+r[3]).reverse();
-  const closes = j.data.map(r=>+r[4]).reverse();
-  const volumes= j.data.map(r=>+r[5]).reverse();
-  return {highs,lows,closes,volumes};
+  return {
+    highs:  j.data.map(r=>+r[2]).reverse(),
+    lows:   j.data.map(r=>+r[3]).reverse(),
+    closes: j.data.map(r=>+r[4]).reverse(),
+    src:'OKX'
+  };
 }
-
-/** Fallback: intenta Binance y si falla, usa OKX */
+/** Fallback */
 async function getDataWithFallback(pairObj, tf){
-  try{
-    return await getKlinesBinance(pairObj.binance, TF_TO_BINANCE[tf]);
-  }catch(e1){
-    console.warn(`Binance falló para ${pairObj.binance} (${tf}), intentando OKX…`, e1);
+  try{ return await getKlinesBinance(pairObj.binance, TF_TO_BINANCE[tf]); }
+  catch(e1){
+    console.warn(`Binance falló ${pairObj.binance}/${tf} → OKX`, e1);
     return await getKlinesOKX(pairObj.okx, TF_TO_OKX[tf]);
   }
 }
 
-/** Evalúa y pinta una fila SOLO con Estocástico */
-async function evaluateAndPaintRow(tr){
-  const symEl = tr.querySelector('.sym');
-  if(!symEl) return;
-  const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
-  const pairObj = SYM_TO_PAIR[sym];
+/** Evalúa y pinta UNA fila (recibe pairObj) */
+async function evaluateAndPaintRow(tr, pairObj){
   const squares = tr.querySelectorAll('.miniTF-sq .sq');
-  if(!pairObj || squares.length!==4){
-    squares.forEach(el=>setSquare(el,'gray'));
-    return;
-  }
+  if(squares.length!==4 || !pairObj) return;
+
   const tfs = ['1h','4h','1d','1w'];
   for(let i=0;i<tfs.length;i++){
-    const tf = tfs[i];
-    const el = squares[i];
+    const tf = tfs[i], el = squares[i];
     try{
-      const {highs,lows,closes} = await getDataWithFallback(pairObj, tf);
-      const k = stochasticK(highs,lows,closes);
+      const d = await getDataWithFallback(pairObj, tf);
+      const k = stochasticK(d.highs, d.lows, d.closes);
       const color = (k <= STOCH_LOW) ? 'green' : (k >= STOCH_HIGH) ? 'red' : 'gray';
       setSquare(el, color);
-      await new Promise(r=>setTimeout(r, 150)); // pausa anti rate-limit
+      el.title = `%K ${k.toFixed(1)} · ${tf} · ${d.src}`;
+      await new Promise(r=>setTimeout(r, 120));
     }catch(e){
       setSquare(el,'gray');
-      console.warn('MiniTF (solo Stoch)', sym, tf, e);
+      el.title = `sin datos · ${tf}`;
+      console.warn('MiniTF %K error', tf, e);
     }
   }
 }
 
-/** Pinta todas las filas visibles después de tu render() */
+/** Recorre todas las filas tras renderizar (dinámico, sin lista fija) */
 async function paintAllVisibleRows(){
+  let symbols=0, g=0, r=0, x=0;
   const trs = Array.from(document.querySelectorAll('#rows tr'));
   for(const tr of trs){
-    const symEl = tr.querySelector('.sym');
-    if(!symEl) continue;
-
+    const symEl = tr.querySelector('.sym'); if(!symEl) continue;
     const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
+    if(!sym) continue;
     const pairObj = getPairFromSymbol(sym);
+    symbols++;
     await evaluateAndPaintRow(tr, pairObj);
+    tr.querySelectorAll('.miniTF-sq .sq').forEach(s=>{
+      if(s.classList.contains('green')) g++;
+      else if(s.classList.contains('red')) r++;
+      else x++;
+    });
   }
+  console.log(`miniTF: símbolos revisados ${symbols} · verdes ${g} · rojos ${r} · grises ${x}`);
 }
 
-/** Hook a tu render() sin romper nada */
+/** Hook a tu render() */
 const __originalRender__ = render;
 render = function(){
   __originalRender__();
-  // Llamada asíncrona para colorear sin bloquear UI
   paintAllVisibleRows();
 };
 
-/* Primera capa por si este script carga después del primer render */
-if (document.readyState !== 'loading') {
-  setTimeout(()=>paintAllVisibleRows(), 300);
-} else {
-  document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
-}
+/** Capa inicial por si este bloque carga después del primer render */
+if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
+else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
 </script>
 </body>
 </html>
