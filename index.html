@@ -326,7 +326,7 @@ function setSquare(el, color){
 }
 
 /** %K rápido (kPeriod=14) */
-function stochasticK(highs,lows,closes,kPeriod=14){
+function stochasticK(highs,lows,closes,kPeriod=8){
   const start = Math.max(closes.length - kPeriod, 0);
   const H = Math.max(...highs.slice(start));
   const L = Math.min(...lows.slice(start));
