@@ -300,25 +300,21 @@ document.getElementById('imageModal').addEventListener('click', function(){
 /* ================== MINI-TFs: SOLO ESTOCÁSTICO + FALLBACK (BINANCE → OKX) ================== */
 
 /** Mapeo de símbolo (el texto entre paréntesis en tu tabla) -> par en Binance/OKX */
-const SYM_TO_PAIR = {
-  BTC:{binance:'BTCUSDT', okx:'BTC-USDT'},
-  ETH:{binance:'ETHUSDT', okx:'ETH-USDT'},
-  XRP:{binance:'XRPUSDT', okx:'XRP-USDT'},
-  BNB:{binance:'BNBUSDT', okx:'BNB-USDT'},
-  SOL:{binance:'SOLUSDT', okx:'SOL-USDT'},
-  ADA:{binance:'ADAUSDT', okx:'ADA-USDT'},
-  DOGE:{binance:'DOGEUSDT', okx:'DOGE-USDT'},
-  TRX:{binance:'TRXUSDT', okx:'TRX-USDT'},
-  MATIC:{binance:'MATICUSDT', okx:'MATIC-USDT'},
-  POL:{binance:'POLUSDT', okx:'POL-USDT'},
-  AVAX:{binance:'AVAXUSDT', okx:'AVAX-USDT'},
-  DOT:{binance:'DOTUSDT', okx:'DOT-USDT'},
-  LINK:{binance:'LINKUSDT', okx:'LINK-USDT'},
-  LTC:{binance:'LTCUSDT', okx:'LTC-USDT'},
-  OP:{binance:'OPUSDT', okx:'OP-USDT'},
-  WLD:{binance:'WLDUSDT', okx:'WLD-USDT'}
-  // Agrega aquí los que necesites (p. ej., TIA, RNDR, FET, etc.)
-};
+function getPairFromSymbol(sym){
+  // Mapeo manual para casos especiales
+  const manual = {
+    POL:{binance:'POLUSDT', okx:'POL-USDT'},
+    WLD:{binance:'WLDUSDT', okx:'WLD-USDT'},
+    // aquí agregás excepciones si el ticker no es igual al símbolo mostrado
+  };
+  if (manual[sym]) return manual[sym];
+  
+  // Por defecto: asume que se llama igual en Binance y OKX
+  return {
+    binance: sym + 'USDT',
+    okx: sym + '-USDT'
+  };
+}
 
 /** Timeframes equivalentes en cada exchange */
 const TF_TO_BINANCE = { '1h':'1h', '4h':'4h', '1d':'1d', '1w':'1w' };
@@ -409,7 +405,14 @@ async function evaluateAndPaintRow(tr){
 /** Pinta todas las filas visibles después de tu render() */
 async function paintAllVisibleRows(){
   const trs = Array.from(document.querySelectorAll('#rows tr'));
-  for(const tr of trs) await evaluateAndPaintRow(tr);
+  for(const tr of trs){
+    const symEl = tr.querySelector('.sym');
+    if(!symEl) continue;
+
+    const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
+    const pairObj = getPairFromSymbol(sym);
+    await evaluateAndPaintRow(tr, pairObj);
+  }
 }
 
 /** Hook a tu render() sin romper nada */
