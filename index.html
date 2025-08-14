@@ -296,5 +296,148 @@ document.getElementById('imageModal').addEventListener('click', function(){
   this.style.display = 'none';
 });
 </script>
+<script>
+/* ================== MINI-TFs: PINTAR SIN CAMBIAR TU LAYOUT ================== */
+
+/** Mapeo de símbolo (texto entre paréntesis de tu tabla) -> par de Binance */
+const SYM_TO_BINANCE = {
+  BTC:'BTCUSDT', ETH:'ETHUSDT', XRP:'XRPUSDT', BNB:'BNBUSDT',
+  SOL:'SOLUSDT', ADA:'ADAUSDT', DOGE:'DOGEUSDT', TRX:'TRXUSDT',
+  MATIC:'MATICUSDT', POL:'POLUSDT', AVAX:'AVAXUSDT', DOT:'DOTUSDT',
+  LINK:'LINKUSDT', LTC:'LTCUSDT', OP:'OPUSDT', WLD:'WLDUSDT'
+  // añade aquí los que quieras soportar
+};
+
+/** Timeframes mostrados en los cuadraditos y su intervalo en Binance */
+const TF_TO_INTERVAL = { '1h':'1h', '4h':'4h', '1d':'1d', '1w':'1w' };
+
+/** Umbrales de señal (ajústalos si quieres) */
+const THRESHOLDS = {
+  rsiBuy:30, rsiSell:70,
+  mfiBuy:20, mfiSell:80,
+  stochBuy:20, stochSell:80
+};
+
+/** Helpers de color (no cambian tamaños ni estructura) */
+function setSquare(el, signal){
+  el.classList.remove('green','red','gray');
+  el.classList.add(signal==='buy'?'green':signal==='sell'?'red':'gray');
+}
+
+/** ------------ Indicadores (RSI, MFI, Stoch %K) ------------ */
+function rsi(closes, period=14){
+  const gains=[], losses=[];
+  for(let i=1;i<closes.length;i++){
+    const d = closes[i]-closes[i-1];
+    gains.push(Math.max(d,0)); losses.push(Math.max(-d,0));
+  }
+  // EMA simple
+  const ema = (arr,p)=>{
+    let k=2/(p+1), prev = arr.slice(0,p).reduce((a,b)=>a+b,0)/p;
+    for(let i=p;i<arr.length;i++) prev = arr[i]*k + prev*(1-k);
+    return prev;
+  };
+  const avgGain = ema(gains,period);
+  const avgLoss = ema(losses,period);
+  const rs = avgGain / (avgLoss || 1e-9);
+  return 100 - (100/(1+rs));
+}
+
+function mfi(highs,lows,closes,volumes,period=14){
+  // Typical price
+  const tp = highs.map((h,i)=>(h+lows[i]+closes[i])/3);
+  let pos=0, neg=0;
+  for(let i=tp.length-period;i<tp.length;i++){
+    const delta = tp[i]-tp[i-1];
+    const flow  = Math.abs(delta)*volumes[i];
+    if(delta>=0) pos+=flow; else neg+=flow;
+  }
+  const mr = pos / (neg || 1e-9);
+  return 100 - (100/(1+mr));
+}
+
+function stochasticK(highs,lows,closes,kPeriod=14){
+  const start = closes.length - kPeriod;
+  const H = Math.max(...highs.slice(start));
+  const L = Math.min(...lows.slice(start));
+  const C = closes[closes.length-1];
+  return ((C-L)/((H-L)||1e-9))*100;
+}
+
+function signalFrom({rsiVal,mfiVal,stochK}){
+  const buy  = (rsiVal < THRESHOLDS.rsiBuy)  && (mfiVal < THRESHOLDS.mfiBuy)  && (stochK < THRESHOLDS.stochBuy);
+  const sell = (rsiVal > THRESHOLDS.rsiSell) && (mfiVal > THRESHOLDS.mfiSell) && (stochK > THRESHOLDS.stochSell);
+  return buy ? 'buy' : sell ? 'sell' : 'neutral';
+}
+
+/** Fetch de velas Binance (sin API key) */
+async function getKlines(symbol, interval, limit=200){
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('Binance '+r.status);
+  const rows = await r.json();
+  const highs = rows.map(r=>+r[2]), lows = rows.map(r=>+r[3]);
+  const closes = rows.map(r=>+r[4]), volumes = rows.map(r=>+r[5]);
+  return {highs,lows,closes,volumes};
+}
+
+/** Evalúa y pinta una fila (detecta el símbolo de tu tabla) */
+async function evaluateAndPaintRow(tr){
+  const symEl = tr.querySelector('.sym');
+  if(!symEl) return;
+  const raw = (symEl.textContent||'').trim(); // "(BTC)"
+  const sym = raw.replace(/[()]/g,'').toUpperCase();
+  const binanceSymbol = SYM_TO_BINANCE[sym];
+  const squares = tr.querySelectorAll('.miniTF-sq .sq');
+  if(!binanceSymbol || squares.length!==4){
+    squares.forEach(el=>setSquare(el,'neutral'));
+    return;
+  }
+  // Orden esperada: 1h, 4h, 1d, 1w (ya viene así en tu HTML)
+  const tfs = ['1h','4h','1d','1w'];
+  for(let i=0;i<tfs.length;i++){
+    const tf = tfs[i];
+    const el = squares[i];
+    try{
+      const {highs,lows,closes,volumes} = await getKlines(binanceSymbol, TF_TO_INTERVAL[tf]);
+      const rsiVal = rsi(closes);
+      const mfiVal = mfi(highs,lows,closes,volumes);
+      const k      = stochasticK(highs,lows,closes);
+      const sig = signalFrom({rsiVal,mfiVal,stochK:k});
+      setSquare(el, sig==='buy'?'green':sig==='sell'?'red':'gray');
+      // Pequeña pausa para respetar rate limit
+      await new Promise(r=>setTimeout(r, 120));
+    }catch(e){
+      setSquare(el,'gray');
+      console.warn('MiniTF', sym, tf, e);
+    }
+  }
+}
+
+/** Pinta todas las filas visibles después de tu render() */
+async function paintAllVisibleRows(){
+  const tbody = document.getElementById('rows');
+  const trs = Array.from(tbody.querySelectorAll('tr'));
+  for(const tr of trs){
+    await evaluateAndPaintRow(tr);
+  }
+}
+
+/** Enganche: ejecutamos después de tu render() original */
+const __originalRender__ = render;
+render = function(){
+  __originalRender__();
+  // Llamamos asíncrono sin bloquear UI
+  paintAllVisibleRows();
+};
+
+/* Primera pasada si ya hubo un render antes de cargar este bloque */
+if (document.readyState !== 'loading') {
+  // Si ya se pintó, forzamos una capa de señales
+  setTimeout(()=>paintAllVisibleRows(), 300);
+} else {
+  document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
+}
+</script>
 </body>
 </html>
