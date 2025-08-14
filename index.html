@@ -325,13 +325,39 @@ function setSquare(el, color){
   el.classList.add(color);
 }
 
-/** %K rápido (kPeriod=14) */
-function stochasticK(highs,lows,closes,kPeriod=8){
-  const start = Math.max(closes.length - kPeriod, 0);
-  const H = Math.max(...highs.slice(start));
-  const L = Math.min(...lows.slice(start));
-  const C = closes[closes.length-1];
-  return ((C - L) / ((H - L) || 1e-9)) * 100;
+/** Calcula %K y %D con suavizado: kPeriod, kSmoothing, dPeriod */
+function stochasticKD(highs, lows, closes, kPeriod=8, kSmoothing=2, dPeriod=3) {
+  const n = closes.length;
+  if (n < kPeriod) return { k: null, d: null };
+
+  // 1️⃣ %K rápido para cada vela
+  const kValues = [];
+  for (let i = kPeriod - 1; i < n; i++) {
+    const H = Math.max(...highs.slice(i - kPeriod + 1, i + 1));
+    const L = Math.min(...lows.slice(i - kPeriod + 1, i + 1));
+    const C = closes[i];
+    const k = ((C - L) / ((H - L) || 1e-9)) * 100;
+    kValues.push(k);
+  }
+
+  // 2️⃣ Suavizado de %K (kSmoothing)
+  const kSmoothed = [];
+  for (let i = kSmoothing - 1; i < kValues.length; i++) {
+    const slice = kValues.slice(i - kSmoothing + 1, i + 1);
+    kSmoothed.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+  }
+
+  // 3️⃣ %D (media de kSmoothed)
+  const dValues = [];
+  for (let i = dPeriod - 1; i < kSmoothed.length; i++) {
+    const slice = kSmoothed.slice(i - dPeriod + 1, i + 1);
+    dValues.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+  }
+
+  // Devuelve último valor
+  const lastK = kSmoothed[kSmoothed.length - 1] ?? null;
+  const lastD = dValues[dValues.length - 1] ?? null;
+  return { k: lastK, d: lastD };
 }
 
 /** Fetch Binance */
@@ -375,8 +401,8 @@ async function evaluateAndPaintRow(tr, pairObj){
     const tf = tfs[i], el = squares[i];
     try{
       const d = await getDataWithFallback(pairObj, tf);
-      const k = stochasticK(d.highs, d.lows, d.closes);
-      const color = (k <= STOCH_LOW) ? 'green' : (k >= STOCH_HIGH) ? 'red' : 'gray';
+      const { k } = stochasticKD(d.highs, d.lows, d.closes, 8, 2, 3); // 8,2,3 por defecto
+      const color = (k !== null && k <= STOCH_LOW) ? 'green' : (k !== null && k >= STOCH_HIGH) ? 'red' : 'gray';
       setSquare(el, color);
       el.title = `%K ${k.toFixed(1)} · ${tf} · ${d.src}`;
       await new Promise(r=>setTimeout(r, 120));
