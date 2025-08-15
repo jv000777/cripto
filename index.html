@@ -392,44 +392,57 @@ async function getDataWithFallback(pairObj, tf){
 }
 
 /** Evalúa y pinta UNA fila (recibe pairObj) */
+async function getSquareColor(el){
+  return el.classList.contains('green') ? 'green'
+       : el.classList.contains('red')   ? 'red'
+       : 'gray';
+}
+function applySquare(el, color, title){
+  const prev = getSquareColor(el);
+  if (prev !== color){
+    el.classList.remove('green','red','gray');
+    el.classList.add(color);
+  }
+  if (el.title !== title) el.title = title;
+}
+
 async function evaluateAndPaintRow(tr, pairObj){
   const squares = tr.querySelectorAll('.miniTF-sq .sq');
-  if(squares.length!==4 || !pairObj) return;
+  if (squares.length!==4 || !pairObj) return;
 
   const tfs = ['1h','4h','1d','1w'];
-  for(let i=0;i<tfs.length;i++){
-    const tf = tfs[i], el = squares[i];
+  const pending = [];
+
+  for (let i=0;i<tfs.length;i++){
+    const tf = tfs[i];
     try{
       const d = await getDataWithFallback(pairObj, tf);
-      const { k } = stochasticKD(d.highs, d.lows, d.closes, 8, 2, 3); // 8,2,3 por defecto
-      const color = (k !== null && k <= STOCH_LOW) ? 'green' : (k !== null && k >= STOCH_HIGH) ? 'red' : 'gray';
-      setSquare(el, color);
-      el.title = `%K ${k.toFixed(1)} · ${tf} · ${d.src}`;
-      await new Promise(r=>setTimeout(r, 120));
+      // usa stochasticKD si la tenés; si no, cae a stochasticK
+      const st = (typeof stochasticKD === 'function')
+        ? stochasticKD(d.highs, d.lows, d.closes, 8, 2, 3)  // ajustá si querés 14,3,3 etc.
+        : { k: stochasticK(d.highs, d.lows, d.closes) };
+
+      const k = st.k;
+      const color = (k != null && k <= STOCH_LOW) ? 'green'
+                   : (k != null && k >= STOCH_HIGH) ? 'red'
+                   : 'gray';
+      const title = (k != null) ? `%K ${k.toFixed(1)} · ${tf} · ${d.src}` : `sin datos · ${tf}`;
+      pending.push({ idx:i, color, title });
+      await new Promise(r=>setTimeout(r, 100)); // respeta rate-limit sin bloquear UI
     }catch(e){
-      setSquare(el,'gray');
-      el.title = `sin datos · ${tf}`;
+      pending.push({ idx:i, color:'gray', title:`sin datos · ${tf}` });
       console.warn('MiniTF %K error', tf, e);
     }
   }
-}
 
-/** Recorre todas las filas tras renderizar (dinámico, sin lista fija) */
-async function paintAllVisibleRows(){
-  let symbols=0, g=0, r=0, x=0;
-  const trs = Array.from(document.querySelectorAll('#rows tr'));
-  for(const tr of trs){
-    const symEl = tr.querySelector('.sym'); if(!symEl) continue;
-    const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
-    if(!sym) continue;
-    const pairObj = getPairFromSymbol(sym);
-    symbols++;
-    await evaluateAndPaintRow(tr, pairObj);
-    tr.querySelectorAll('.miniTF-sq .sq').forEach(s=>{
-      if(s.classList.contains('green')) g++;
-      else if(s.classList.contains('red')) r++;
-      else x++;
-    });
+  // 🔄 Aplicar TODO junto en el próximo frame
+  requestAnimationFrame(()=>{
+    for (const p of pending){
+      const el = squares[p.idx];
+      applySquare(el, p.color, p.title);
+    }
+  });
+}
   }
   console.log(`miniTF: símbolos revisados ${symbols} · verdes ${g} · rojos ${r} · grises ${x}`);
 }
