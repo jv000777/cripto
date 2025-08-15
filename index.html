@@ -64,7 +64,7 @@
   .miniTF-labels{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start;
     font-size:11px;color:#aab3d1;text-align:center;margin-bottom:4px}
   .miniTF-sq{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start}
-  .sq{width:16px;height:16px;border-radius:4px;background:#3b445a;border:1px solid #2a3246;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:0 auto}
+  .sq{width:16px;height:16px;border-radius:4px;background:#3b445a;border:1px solid #2a3246;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:0 auto;transition:background-color .25s ease,border-color .25s ease}
   .sq.green{background:rgba(34,197,94,.85);border-color:rgba(34,197,94,.55)}
   .sq.red{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.55)}
   .sq.gray{background:#3b445a}
@@ -225,7 +225,6 @@ function render(){
     const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
     const name = x.name || x.id || x.symbol || '';
 
-    /* Bloque de 4 cuadraditos (neutrales por ahora) */
     const mini = `
       <div class="miniTF">
         <div class="miniTF-labels">
@@ -296,10 +295,11 @@ document.getElementById('imageModal').addEventListener('click', function(){
   this.style.display = 'none';
 });
 </script>
-<script>
-/* === MINI-TFs DINÁMICO · SOLO %K · UMBRAL 15/85 · Binance→OKX === */
 
-/** Mapeo dinámico (excepciones si difiere del símbolo mostrado) */
+<script>
+/* === MINI-TFs DINÁMICO · %K lento (8,2,3) · UMBRAL 15/85 · Binance→OKX · sin parpadeo === */
+
+/** Pares especiales si el ticker difiere */
 function getPairFromSymbol(sym){
   const manual = {
     POL:{binance:'POLUSDT', okx:'POL-USDT'},
@@ -312,25 +312,38 @@ function getPairFromSymbol(sym){
   return manual[sym] ?? { binance: sym + 'USDT', okx: sym + '-USDT' };
 }
 
-/** Timeframes equivalentes */
+/** Timeframes */
 const TF_TO_BINANCE = { '1h':'1h', '4h':'4h', '1d':'1d', '1w':'1w' };
 const TF_TO_OKX     = { '1h':'1H', '4h':'4H', '1d':'1D', '1w':'1W' };
 
-/** Umbrales SOLO para %K */
+/** Umbrales */
 const STOCH_LOW  = 15; // ≤15 → verde
 const STOCH_HIGH = 85; // ≥85 → rojo
 
+/** Helpers UI */
 function setSquare(el, color){
   el.classList.remove('green','red','gray');
   el.classList.add(color);
 }
+function getSquareColor(el){
+  return el.classList.contains('green') ? 'green'
+       : el.classList.contains('red')   ? 'red'
+       : 'gray';
+}
+function applySquare(el, color, title){
+  const prev = getSquareColor(el);
+  if (prev !== color){
+    el.classList.remove('green','red','gray');
+    el.classList.add(color);
+  }
+  if (el.title !== title) el.title = title;
+}
 
-/** Calcula %K y %D con suavizado: kPeriod, kSmoothing, dPeriod */
+/** Estocástico lento: devuelve último %K suavizado y %D */
 function stochasticKD(highs, lows, closes, kPeriod=8, kSmoothing=2, dPeriod=3) {
   const n = closes.length;
   if (n < kPeriod) return { k: null, d: null };
 
-  // 1️⃣ %K rápido para cada vela
   const kValues = [];
   for (let i = kPeriod - 1; i < n; i++) {
     const H = Math.max(...highs.slice(i - kPeriod + 1, i + 1));
@@ -340,21 +353,18 @@ function stochasticKD(highs, lows, closes, kPeriod=8, kSmoothing=2, dPeriod=3) {
     kValues.push(k);
   }
 
-  // 2️⃣ Suavizado de %K (kSmoothing)
   const kSmoothed = [];
   for (let i = kSmoothing - 1; i < kValues.length; i++) {
     const slice = kValues.slice(i - kSmoothing + 1, i + 1);
     kSmoothed.push(slice.reduce((a, b) => a + b, 0) / slice.length);
   }
 
-  // 3️⃣ %D (media de kSmoothed)
   const dValues = [];
   for (let i = dPeriod - 1; i < kSmoothed.length; i++) {
     const slice = kSmoothed.slice(i - dPeriod + 1, i + 1);
     dValues.push(slice.reduce((a, b) => a + b, 0) / slice.length);
   }
 
-  // Devuelve último valor
   const lastK = kSmoothed[kSmoothed.length - 1] ?? null;
   const lastD = dValues[dValues.length - 1] ?? null;
   return { k: lastK, d: lastD };
@@ -391,21 +401,7 @@ async function getDataWithFallback(pairObj, tf){
   }
 }
 
-/** Evalúa y pinta UNA fila (recibe pairObj) */
-async function getSquareColor(el){
-  return el.classList.contains('green') ? 'green'
-       : el.classList.contains('red')   ? 'red'
-       : 'gray';
-}
-function applySquare(el, color, title){
-  const prev = getSquareColor(el);
-  if (prev !== color){
-    el.classList.remove('green','red','gray');
-    el.classList.add(color);
-  }
-  if (el.title !== title) el.title = title;
-}
-
+/** Evalúa y prepara cambios en una fila (batch sin parpadeo) */
 async function evaluateAndPaintRow(tr, pairObj){
   const squares = tr.querySelectorAll('.miniTF-sq .sq');
   if (squares.length!==4 || !pairObj) return;
@@ -417,25 +413,19 @@ async function evaluateAndPaintRow(tr, pairObj){
     const tf = tfs[i];
     try{
       const d = await getDataWithFallback(pairObj, tf);
-      // usa stochasticKD si la tenés; si no, cae a stochasticK
-      const st = (typeof stochasticKD === 'function')
-        ? stochasticKD(d.highs, d.lows, d.closes, 8, 2, 3)  // ajustá si querés 14,3,3 etc.
-        : { k: stochasticK(d.highs, d.lows, d.closes) };
-
-      const k = st.k;
+      const { k } = stochasticKD(d.highs, d.lows, d.closes, 8, 2, 3);
       const color = (k != null && k <= STOCH_LOW) ? 'green'
                    : (k != null && k >= STOCH_HIGH) ? 'red'
                    : 'gray';
       const title = (k != null) ? `%K ${k.toFixed(1)} · ${tf} · ${d.src}` : `sin datos · ${tf}`;
       pending.push({ idx:i, color, title });
-      await new Promise(r=>setTimeout(r, 100)); // respeta rate-limit sin bloquear UI
+      await new Promise(r=>setTimeout(r, 100)); // rate-limit friendly
     }catch(e){
       pending.push({ idx:i, color:'gray', title:`sin datos · ${tf}` });
       console.warn('MiniTF %K error', tf, e);
     }
   }
 
-  // 🔄 Aplicar TODO junto en el próximo frame
   requestAnimationFrame(()=>{
     for (const p of pending){
       const el = squares[p.idx];
@@ -443,6 +433,25 @@ async function evaluateAndPaintRow(tr, pairObj){
     }
   });
 }
+
+/** Recorre todas las filas y aplica */
+async function paintAllVisibleRows(){
+  let symbols=0, g=0, r=0, x=0;
+  const trs = Array.from(document.querySelectorAll('#rows tr'));
+  for(const tr of trs){
+    const symEl = tr.querySelector('.sym'); if(!symEl) continue;
+    const sym = (symEl.textContent||'').replace(/[()]/g,'').trim().toUpperCase();
+    if(!sym) continue;
+    const pairObj = getPairFromSymbol(sym);
+    symbols++;
+    await evaluateAndPaintRow(tr, pairObj);
+    // esperar al frame donde se aplican cambios y contar
+    await new Promise(res=>requestAnimationFrame(()=>res()));
+    tr.querySelectorAll('.miniTF-sq .sq').forEach(s=>{
+      if(s.classList.contains('green')) g++;
+      else if(s.classList.contains('red')) r++;
+      else x++;
+    });
   }
   console.log(`miniTF: símbolos revisados ${symbols} · verdes ${g} · rojos ${r} · grises ${x}`);
 }
@@ -458,5 +467,6 @@ render = function(){
 if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
 else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
 </script>
+
 </body>
 </html>
