@@ -1,142 +1,181 @@
-// Node 20 (ESM). Genera data/snapshot.json con: usd, change_24h, change_7d, market_cap
-import fs from "fs/promises";
+// Front-end con CoinGecko, sin Node.
+// Repite la lógica de tu script inline 1:1.
 
-/* ===================== Config listas ===================== */
-// Top ~50 por relevancia/MC (ids CoinGecko)
-const TOP50_IDS = [
-  "bitcoin","ethereum","tether","binancecoin","solana","ripple","usd-coin","staked-ether","cardano","dogecoin",
-  "avalanche-2","tron","shiba-inu","wrapped-bitcoin","polkadot","chainlink","polygon","bitcoin-cash","toncoin","uniswap",
-  "litecoin","internet-computer","dai","near","ethereum-classic","filecoin","aptos","leo-token","stellar","okb",
-  "vechain","render-token","monero","arbitrum","fantom","the-graph","hedera","immutable-x","maker","kaspa",
-  "gala","optimism","frax","sei-network","algorand","flow","thorchain","conflux-token","mina-protocol","worldcoin-wld"
-];
+const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
 
-// Tus monedas de billetera (pueden ser id/símbolo/nombre)
-const WALLET_RAW = [
-  "worldcoin", "pol", "bonk", "bome", "official-trump",
-  "streamflow", "pengu", "just-a-chill-guy", "goatseus-maximus",
-  "optimism", "solana", "ripple"
-];
+const EXCLUDE_IDS = new Set([
+  "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+  "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
+]);
 
-/* ===================== Overrides de IDs ===================== */
-// Soluciona ambigüedades o símbolos sin correspondencia directa
-const ID_OVERRIDES = {
-  worldcoin: "worldcoin-wld",
-  bome: "book-of-meme",
-  pol: "polygon-ecosystem-token",      // si prefieres MATIC: "matic-network"
-  pengu: "pudgy-penguins",             // << FIX: que PENGU sea Pudgy Penguins
-};
+const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"];
 
-/* ===================== Utilidades HTTP ===================== */
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+let FULL = [];
+let shown = 10;
+let sortKey = 'market_cap';
+let sortDir = 'desc';
 
-async function fetchJson(url, tries = 3) {
-  let lastErr;
-  for (let i = 1; i <= tries; i++) {
-    try {
-      const r = await fetch(url, {
-        headers: { accept: "application/json", "user-agent": "gh-actions" }
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
-      return await r.json();
-    } catch (e) {
-      lastErr = e;
-      await sleep(300 * i);
-    }
+async function fetchLive(){
+  const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
+    + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
+    + '&sparkline=false&price_change_percentage=24h,7d';
+  const r1 = await fetch(urlTop, { cache:'no-store', headers:{accept:'application/json'}});
+  if (!r1.ok) throw new Error('CG top HTTP '+r1.status);
+  const top = await r1.json();
+
+  let extra = [];
+  if (ALWAYS_INCLUDE_IDS.length){
+    const urlExtra = 'https://api.coingecko.com/api/v3/coins/markets'
+      + `?vs_currency=usd&ids=${encodeURIComponent(ALWAYS_INCLUDE_IDS.join(','))}`
+      + '&sparkline=false&price_change_percentage=24h,7d';
+    const r2 = await fetch(urlExtra, { cache:'no-store', headers:{accept:'application/json'}});
+    if (r2.ok) extra = await r2.json();
   }
-  throw lastErr;
-}
 
-/* ===================== Resolución de IDs ===================== */
-async function getAllCoinList() {
-  // Lista completa de ids/símbolos/nombres
-  return await fetchJson("https://api.coingecko.com/api/v3/coins/list?include_platform=false");
-}
+  const map = new Map();
+  [...top, ...extra].forEach(c => { if (c && c.id) map.set(c.id, c); });
+  const data = [...map.values()];
 
-function buildLookup(list) {
-  const byId = new Map(), bySym = new Map(), byName = new Map();
-  for (const c of list) {
-    const id = (c.id || "").toLowerCase();
-    const s  = (c.symbol || "").toLowerCase();
-    const n  = (c.name || "").toLowerCase();
-    if (id) byId.set(id, c);
-    if (s) { if (!bySym.has(s)) bySym.set(s, []); bySym.get(s).push(c); }
-    if (n) { if (!byName.has(n)) byName.set(n, []); byName.get(n).push(c); }
-  }
-  return { byId, bySym, byName };
-}
-
-function resolveEntry(raw, lookup) {
-  const x = String(raw || "").trim().toLowerCase();
-  if (!x) return { raw, resolved: null, reason: "empty" };
-  if (ID_OVERRIDES[x]) return { raw, resolved: ID_OVERRIDES[x], via: "override" };
-  if (lookup.byId.has(x)) return { raw, resolved: x, via: "id" };
-
-  if (lookup.bySym.has(x)) {
-    const arr = lookup.bySym.get(x);
-    return { raw, resolved: arr[0].id, via: arr.length > 1 ? "symbol-ambiguous" : "symbol", candidates: arr.map(i => i.id) };
-  }
-  if (lookup.byName.has(x)) {
-    const arr = lookup.byName.get(x);
-    return { raw, resolved: arr[0].id, via: arr.length > 1 ? "name-ambiguous" : "name", candidates: arr.map(i => i.id) };
-  }
-  return { raw, resolved: null, reason: "not-found" };
-}
-
-/* ===================== Markets (24h, 7d) ===================== */
-async function getMarkets(ids) {
-  if (!ids.length) return [];
-  const url = "https://api.coingecko.com/api/v3/coins/markets"
-    + `?vs_currency=usd&ids=${ids.join(",")}&price_change_percentage=24h,7d&per_page=250`;
-  return await fetchJson(url);
-}
-
-/* ===================== Main ===================== */
-async function main() {
-  // 1) Resolver ids válidos
-  const all = await getAllCoinList();
-  const lookup = buildLookup(all);
-
-  const topValid = TOP50_IDS.filter(id => lookup.byId.has(id));
-  const walletRes = WALLET_RAW.map(w => resolveEntry(w, lookup));
-  const walletValid = walletRes.filter(r => r.resolved).map(r => r.resolved);
-
-  // 2) Unificar + deduplicar
-  const wanted = Array.from(new Set([...topValid, ...walletValid]));
-
-  // 3) Descargar markets (1 request)
-  const arr = await getMarkets(wanted);
-
-  // 4) Armar assets (clave = símbolo en MAYÚSCULAS)
-  const assets = {};
-  for (const c of arr) {
-    const sym = (c.symbol || c.id || "").toUpperCase();
-    assets[sym] = {
-      usd: c.current_price ?? null,
-      change_24h: c.price_change_percentage_24h_in_currency ?? null, // %
-      change_7d:  c.price_change_percentage_7d_in_currency  ?? null, // %
-      market_cap: c.market_cap ?? null,
+  FULL = data
+    .filter(c => c && c.id && !EXCLUDE_IDS.has(c.id.toLowerCase()))
+    .map(c => ({
       id: c.id,
       name: c.name,
-      source: "coingecko"
-    };
-  }
+      symbol: (c.symbol||'').toUpperCase(),
+      usd: c.current_price ?? null,
+      change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+      change_7d:  c.price_change_percentage_7d_in_currency ?? null,
+      market_cap: c.market_cap ?? null
+    }))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
 
-  // 5) Meta / debug
-  const missing = walletRes.filter(r => !r.resolved).map(r => ({ raw: r.raw, reason: r.reason }));
-  const ambiguous = walletRes
-    .filter(r => r.candidates && r.candidates.length > 1)
-    .map(r => ({ raw: r.raw, resolved: r.resolved, candidates: r.candidates }));
-
-  // 6) Escribir snapshot
-  await fs.mkdir("data", { recursive: true });
-  await fs.writeFile("data/snapshot.json", JSON.stringify({
-    updated_at: new Date().toISOString(),
-    meta: { included_ids: wanted, wallet_resolved: walletRes, missing, ambiguous },
-    assets
-  }, null, 2));
-
-  console.log(`OK: ${Object.keys(assets).length} activos. missing=${missing.length} ambiguous=${ambiguous.length}`);
+  document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+async function fetchSnapshot(){
+  const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
+  if (!res.ok) throw new Error('snapshot HTTP '+res.status);
+  const j = await res.json();
+  document.getElementById('update-time').textContent =
+    'Última actualización: ' + (j.updated_at ? new Date(j.updated_at).toLocaleString() : '—');
+
+  FULL = Object.entries(j.assets || {})
+    .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))
+    .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
+}
+
+function setSort(key){
+  if (sortKey === key){
+    sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  render();
+}
+function cmp(a,b){
+  const va = getVal(a, sortKey);
+  const vb = getVal(b, sortKey);
+  const na = (va==null || Number.isNaN(va));
+  const nb = (vb==null || Number.isNaN(vb));
+  if (na && nb) return 0;
+  if (na) return 1;
+  if (nb) return -1;
+  return sortDir==='desc' ? (vb-va) : (va-vb);
+}
+function getVal(x,k){
+  if (k==='market_cap') return Number(x.market_cap ?? NaN);
+  if (k==='change_24h') return Number(x.change_24h ?? NaN);
+  if (k==='change_7d')  return Number(x.change_7d  ?? NaN);
+  return NaN;
+}
+function updateArrows(){
+  document.getElementById('arr-mc').textContent  = (sortKey==='market_cap') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-24h').textContent = (sortKey==='change_24h') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
+}
+
+function render(){
+  const list = [...FULL].sort(cmp).slice(0, shown);
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+  for (const x of list){
+    const price = x.usd!=null ? nfUSD.format(x.usd) : '—';
+    const c24 = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
+    const c7  = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
+    const cls24 = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
+    const cls7  = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
+    const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
+    const name = x.name || x.id || x.symbol || '';
+
+    const mini = `
+      <div class="miniTF">
+        <div class="miniTF-labels">
+          <span>1h</span><span>4h</span><span>1d</span><span>1w</span>
+        </div>
+        <div class="miniTF-sq">
+          <span class="sq gray" data-tf="1h"></span>
+          <span class="sq gray" data-tf="4h"></span>
+          <span class="sq gray" data-tf="1d"></span>
+          <span class="sq gray" data-tf="1w"></span>
+        </div>
+      </div>`;
+
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>
+          <div class="name">
+            <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
+            <span class="mc">· MC ${mcShort}</span>
+            ${mini}
+          </div>
+        </td>
+        <td class="num">${price}</td>
+        <td class="num"><span class="${cls24}">${c24}</span></td>
+        <td class="num"><span class="${cls7}">${c7}</span></td>
+      </tr>
+    `);
+  }
+  const mb = document.getElementById('morebar');
+  const remaining = Math.max((FULL.length - shown), 0);
+  mb.textContent = remaining>0 ? `MORE (+${Math.min(5,remaining)})` : 'LESS (top-10)';
+  updateArrows();
+}
+
+async function refresh(){
+  try{ await fetchLive(); }
+  catch(e){
+    console.warn('Live CG falló, uso snapshot:', e);
+    try{ await fetchSnapshot(); }catch(e2){
+      console.error('Snapshot también falló:', e2);
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
+      return;
+    }
+  }
+  render();
+}
+
+document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
+document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
+document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
+
+document.getElementById('morebar').addEventListener('click', ()=>{
+  if (shown >= FULL.length){ shown = 10; }
+  else { shown = Math.min(FULL.length, shown + 5); }
+  render();
+});
+
+document.getElementById('y').textContent = new Date().getFullYear();
+refresh();
+setInterval(refresh, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
+
+document.getElementById('logoClick').addEventListener('click', function(){
+  document.getElementById('imageModal').style.display = 'flex';
+});
+document.getElementById('imageModal').addEventListener('click', function(){
+  this.style.display = 'none';
+});
