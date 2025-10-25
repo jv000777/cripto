@@ -1,46 +1,51 @@
-// IDs oficiales de CoinGecko
+// === Config ===
 const IDS = [
   "bitcoin","ethereum","solana","ripple","optimism",
   "worldcoin-wld","polygon-ecosystem-token","bonk","book-of-meme"
 ];
 
-function fmtN(x,d=8){ if(x==null) return "-"; return Number(x).toLocaleString("en-US",{maximumFractionDigits:d}); }
-function fmtP(x){ if(x==null) return "-"; const s=Number(x).toFixed(2); return (x>=0?"+":"")+s+"%"; }
+// === Utiles ===
+const fmtN = (x,d=8)=> x==null ? "-" : Number(x).toLocaleString("en-US",{maximumFractionDigits:d});
+const fmtP = (x)=> {
+  if (x==null) return "-";
+  const v = Number(x);
+  return (v>=0?"+":"") + v.toFixed(2) + "%";
+};
 
+// === Main ===
 async function cargar(){
-  const status=document.getElementById("status");
-  const tbody =document.querySelector("#tabla tbody");
+  const status = document.getElementById("update-time");
+  const tbody  = document.getElementById("rows");
   try{
+    status.textContent = "Última actualización: cargando…";
+
     const url = "https://api.coingecko.com/api/v3/coins/markets"
       + "?vs_currency=usd"
       + "&ids=" + encodeURIComponent(IDS.join(","))
       + "&price_change_percentage=24h,7d"
       + "&per_page=250";
 
-    // Si tienes clave gratuita de CoinGecko, agrega: headers: { "Accept":"application/json", "x-cg-api-key":"TU_CLAVE" }
-    const r = await fetch(url, { headers:{ "Accept":"application/json" }, cache:"no-store" });
-    if(!r.ok) throw new Error("HTTP "+r.status);
+    const r = await fetch(url, { headers:{Accept:"application/json"}, cache:"no-store" });
+    if(!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
 
-    // Orden por capitalización
     data.sort((a,b)=>(b.market_cap||0)-(a.market_cap||0));
 
-    // Pintar tabla
-    tbody.innerHTML = "";
-    for(const c of data){
-      const tr=document.createElement("tr");
-      tr.innerHTML = `
-        <td>${c.name} (${(c.symbol||"").toUpperCase()})</td>
-        <td>${fmtN(c.current_price)}</td>
-        <td>${fmtP(c.price_change_percentage_24h_in_currency)}</td>
-        <td>${fmtP(c.price_change_percentage_7d_in_currency)}</td>
-        <td>${fmtN(c.market_cap,0)}</td>
-      `;
-      tbody.appendChild(tr);
+    // pinta filas
+    let html = "";
+    for (const c of data){
+      html += `<tr>
+        <td><span class="hdr">${c.name} (${(c.symbol||"").toUpperCase()})</span></td>
+        <td class="num">${fmtN(c.current_price)}</td>
+        <td class="num">${fmtP(c.price_change_percentage_24h_in_currency)}</td>
+        <td class="num">${fmtP(c.price_change_percentage_7d_in_currency)}</td>
+      </tr>`;
     }
-    status.textContent = "Actualizado: " + new Date().toLocaleString();
+    tbody.innerHTML = html || `<tr><td colspan="4">Sin datos</td></tr>`;
+    status.textContent = "Última actualización: " + new Date().toLocaleString();
   }catch(e){
-    document.getElementById("status").textContent = "Error: " + e.message;
+    tbody.innerHTML = `<tr><td colspan="4">Error</td></tr>`;
+    status.textContent = "Error: " + e.message;
   }
 }
 
