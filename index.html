@@ -1,32 +1,300 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <base href="/cripto/">
-  <title>iXO · Cripto Monitor</title>
-  <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>iXO · Cripto Monitor</title>
+<link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32"/>
+
+<style>
+  :root{
+    --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
+    --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Arial,sans-serif}
+  header{padding:22px 0 8px;text-align:center}
+  .logoWrap{display:inline-grid;place-items:center;width:86px;height:86px;margin:0 auto 10px;border-radius:50%;
+    background:radial-gradient(120px circle at 50% 45%, rgba(255,255,255,.06), rgba(255,255,255,0));
+    box-shadow:0 8px 30px rgba(0,0,0,.35) inset, 0 8px 20px rgba(0,0,0,.25);
+    cursor:pointer;
+  }
+  .logo{width:78px;height:78px;border-radius:50%;object-fit:contain;filter:brightness(1.35) contrast(1.15)}
+  h1{font-size:2.6rem;margin:8px 0 4px}
+  .sub{color:var(--muted);margin:0 0 6px}
+  .upd{color:#9aa3b2;font-size:.9rem;margin:0 0 6px}
+  .frase{color:#9aa3b2;font-size:.9rem;margin:0 0 18px;font-style:italic}
+  header::after{content:"";display:block;height:1px;margin:14px auto 10px;width:92%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 12px 28px}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);
+    border-radius:14px;overflow:hidden}
+  thead th{background:var(--head);color:#cfd5ff;font-weight:700;padding:12px 10px}
+  thead th.sortable{cursor:pointer;user-select:none}
+  thead th.sortable:hover{filter:brightness(1.05)}
+  thead .hdr{display:flex;align-items:center;gap:6px;justify-content:flex-start}
+  thead .hdr.right{justify-content:flex-end}
+  .arrow{opacity:.55;font-size:.9em;min-width:1ch}
+  tbody td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px;}
+  .name{display:flex;flex-direction:column;gap:4px}
+  .name .sym{opacity:.85}
+  .mc{font-size:11px;color:#aab3d1}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--pill);min-width:74px;text-align:center;font-size:13px;}
+  .up{color:var(--up);background:rgba(34,197,94,.15)}
+  .down{color:var(--down);background:rgba(239,68,68,.15)}
+  .morebar{position:sticky;bottom:0;background:var(--head);color:#cfd5ff;padding:12px;
+    text-align:center;cursor:pointer;border-top:1px solid var(--line)}
+  .morebar:hover{filter:brightness(1.05)}
+  .note{color:#97a1b9;font-size:.85rem;margin:10px 0 0;text-align:center}
+  footer{color:#9aa3b2;text-align:center;font-size:12px;padding:18px}
+  @media (min-width:700px){ h1{font-size:3rem} }
+
+  /* Modal imagen */
+  #imageModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);
+    justify-content:center;align-items:center;z-index:999}
+  #imageModal img{max-width:90%;max-height:90%;border-radius:8px}
+
+  /* Cuadraditos 1h/4h/1d/1w */
+  .miniTF{margin-top:8px}
+  .miniTF-labels{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start;
+    font-size:11px;color:#aab3d1;text-align:center;margin-bottom:4px}
+  .miniTF-sq{display:grid;grid-template-columns:repeat(4,26px);gap:8px;justify-content:flex-start}
+  .sq{width:16px;height:16px;border-radius:4px;background:#3b445a;border:1px solid #2a3246;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);margin:0 auto}
+  .sq.green{background:rgba(34,197,94,.85);border-color:rgba(34,197,94,.55)}
+  .sq.red{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.55)}
+  .sq.gray{background:#3b445a}
+</style>
 </head>
-<script src="scripts/fetch-prices.js"></script>
+
 <body>
-  <header>
-    <h1>iXO · Cripto Monitor</h1>
-  </header>
+<header>
+  <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
+  <h1>iXO</h1>
+  <p class="sub">Cripto · Monitor</p>
+  <p class="upd" id="update-time">Última actualización: —</p>
+  <p class="frase">Cuando nada es seguro, todo es posible.</p>
+</header>
 
-  <p id="update-time">Última actualización: cargando…</p>
-
-  <table id="t" border="1">
+<div class="wrap">
+  <table id="t">
     <thead>
       <tr>
-        <th>Token</th>
-        <th>Precio (USD)</th>
-        <th>24h %</th>
-        <th>7d %</th>
+        <th class="sortable" id="th-mc">
+          <span class="hdr">Activo / MC <span class="arrow" id="arr-mc"></span></span>
+        </th>
+        <th class="num">Precio (USD)</th>
+        <th class="sortable num" id="th-24h">
+          <span class="hdr right">24h <span class="arrow" id="arr-24h"></span></span>
+        </th>
+        <th class="sortable num" id="th-7d">
+          <span class="hdr right">7d <span class="arrow" id="arr-7d"></span></span>
+        </th>
       </tr>
     </thead>
-    <tbody id="rows"></tbody>
+    <tbody id="rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+    <tfoot>
+      <tr><td colspan="4" id="morebar" class="morebar">MORE (+5)</td></tr>
+    </tfoot>
   </table>
+  <p class="note">Toque los encabezados “Activo / MC”, “24h” o “7d” para ordenar.</p>
+</div>
 
-  <script src="js/app.js"></script>
+<footer>© <span id="y"></span> jv000777 · GitHub Pages</footer>
+
+<!-- Modal -->
+<div id="imageModal">
+  <img src="assets/A.PNG" alt="iXO grande">
+</div>
+
+<script>
+/* ---------- FORMATTERS ---------- */
+const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+const nfCompact = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
+
+/* ---------- EXCLUSIONES ---------- */
+const EXCLUDE_IDS = new Set([
+  "tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar",
+  "staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"
+]);
+
+/* ---------- SIEMPRE INCLUIR ---------- */
+const ALWAYS_INCLUDE_IDS = ["pudgy-penguins"];
+
+let FULL = [];
+let shown = 10;
+let sortKey = 'market_cap';
+let sortDir = 'desc';
+
+async function fetchLive(){
+  const urlTop = 'https://api.coingecko.com/api/v3/coins/markets'
+    + '?vs_currency=usd&order=market_cap_desc&per_page=200&page=1'
+    + '&sparkline=false&price_change_percentage=24h,7d';
+  const r1 = await fetch(urlTop, { cache:'no-store', headers:{accept:'application/json'}});
+  if (!r1.ok) throw new Error('CG top HTTP '+r1.status);
+  const top = await r1.json();
+
+  let extra = [];
+  if (ALWAYS_INCLUDE_IDS.length){
+    const urlExtra = 'https://api.coingecko.com/api/v3/coins/markets'
+      + `?vs_currency=usd&ids=${encodeURIComponent(ALWAYS_INCLUDE_IDS.join(','))}`
+      + '&sparkline=false&price_change_percentage=24h,7d';
+    const r2 = await fetch(urlExtra, { cache:'no-store', headers:{accept:'application/json'}});
+    if (r2.ok) extra = await r2.json();
+  }
+
+  const map = new Map();
+  [...top, ...extra].forEach(c => { if (c && c.id) map.set(c.id, c); });
+  const data = [...map.values()];
+
+  FULL = data
+    .filter(c => c && c.id && !EXCLUDE_IDS.has(c.id.toLowerCase()))
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      symbol: (c.symbol||'').toUpperCase(),
+      usd: c.current_price ?? null,
+      change_24h: c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+      change_7d:  c.price_change_percentage_7d_in_currency ?? null,
+      market_cap: c.market_cap ?? null
+    }))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
+
+  document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
+}
+
+async function fetchSnapshot(){
+  const res = await fetch('data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
+  if (!res.ok) throw new Error('snapshot HTTP '+res.status);
+  const j = await res.json();
+  document.getElementById('update-time').textContent =
+    'Última actualización: ' + (j.updated_at ? new Date(j.updated_at).toLocaleString() : '—');
+
+  FULL = Object.entries(j.assets || {})
+    .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))
+    .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
+}
+
+function setSort(key){
+  if (sortKey === key){
+    sortDir = (sortDir === 'desc') ? 'asc' : 'desc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  render();
+}
+function cmp(a,b){
+  const va = getVal(a, sortKey);
+  const vb = getVal(b, sortKey);
+  const na = (va==null || Number.isNaN(va));
+  const nb = (vb==null || Number.isNaN(vb));
+  if (na && nb) return 0;
+  if (na) return 1;
+  if (nb) return -1;
+  return sortDir==='desc' ? (vb-va) : (va-vb);
+}
+function getVal(x,k){
+  if (k==='market_cap') return Number(x.market_cap ?? NaN);
+  if (k==='change_24h') return Number(x.change_24h ?? NaN);
+  if (k==='change_7d')  return Number(x.change_7d  ?? NaN);
+  return NaN;
+}
+function updateArrows(){
+  document.getElementById('arr-mc').textContent  = (sortKey==='market_cap') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-24h').textContent = (sortKey==='change_24h') ? (sortDir==='desc'?'↓':'↑') : '';
+  document.getElementById('arr-7d').textContent  = (sortKey==='change_7d')  ? (sortDir==='desc'?'↓':'↑') : '';
+}
+
+function render(){
+  const list = [...FULL].sort(cmp).slice(0, shown);
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+  for (const x of list){
+    const price = x.usd!=null ? nfUSD.format(x.usd) : '—';
+    const c24 = (typeof x.change_24h==='number') ? nfPct.format(x.change_24h)+'%' : '—';
+    const c7  = (typeof x.change_7d ==='number') ? nfPct.format(x.change_7d) +'%' : '—';
+    const cls24 = (typeof x.change_24h==='number') ? (x.change_24h>=0?'pill up':'pill down') : 'pill';
+    const cls7  = (typeof x.change_7d ==='number') ? (x.change_7d >=0?'pill up':'pill down') : 'pill';
+    const mcShort= x.market_cap!=null ? nfCompact.format(x.market_cap) : '—';
+    const name = x.name || x.id || x.symbol || '';
+
+    /* Bloque de 4 cuadraditos (neutrales por ahora) */
+    const mini = `
+      <div class="miniTF">
+        <div class="miniTF-labels">
+          <span>1h</span><span>4h</span><span>1d</span><span>1w</span>
+        </div>
+        <div class="miniTF-sq">
+          <span class="sq gray" data-tf="1h"></span>
+          <span class="sq gray" data-tf="4h"></span>
+          <span class="sq gray" data-tf="1d"></span>
+          <span class="sq gray" data-tf="1w"></span>
+        </div>
+      </div>`;
+
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>
+          <div class="name">
+            <strong>${name} <span class="sym">(${(x.symbol||'')})</span></strong>
+            <span class="mc">· MC ${mcShort}</span>
+            ${mini}
+          </div>
+        </td>
+        <td class="num">${price}</td>
+        <td class="num"><span class="${cls24}">${c24}</span></td>
+        <td class="num"><span class="${cls7}">${c7}</span></td>
+      </tr>
+    `);
+  }
+  const mb = document.getElementById('morebar');
+  const remaining = Math.max((FULL.length - shown), 0);
+  mb.textContent = remaining>0 ? `MORE (+${Math.min(5,remaining)})` : 'LESS (top-10)';
+  updateArrows();
+}
+
+async function refresh(){
+  try{ await fetchLive(); }
+  catch(e){
+    console.warn('Live CG falló, uso snapshot:', e);
+    try{ await fetchSnapshot(); }catch(e2){
+      console.error('Snapshot también falló:', e2);
+      document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
+      return;
+    }
+  }
+  render();
+}
+
+document.getElementById('th-mc').addEventListener('click', ()=>setSort('market_cap'));
+document.getElementById('th-24h').addEventListener('click', ()=>setSort('change_24h'));
+document.getElementById('th-7d').addEventListener('click',  ()=>setSort('change_7d'));
+
+document.getElementById('morebar').addEventListener('click', ()=>{
+  if (shown >= FULL.length){ shown = 10; }
+  else { shown = Math.min(FULL.length, shown + 5); }
+  render();
+});
+
+document.getElementById('y').textContent = new Date().getFullYear();
+refresh();
+setInterval(refresh, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refresh(); });
+
+/* Modal logo */
+document.getElementById('logoClick').addEventListener('click', function(){
+  document.getElementById('imageModal').style.display = 'flex';
+});
+document.getElementById('imageModal').addEventListener('click', function(){
+  this.style.display = 'none';
+});
+</script>
 </body>
 </html>
