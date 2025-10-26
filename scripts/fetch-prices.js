@@ -1,4 +1,4 @@
-// Node 20 (ESM). Genera data/snapshot.json con: usd, change_24h, change_7d, market_cap
+/// Node 20 (ESM). Genera data/snapshot.json con: usd, change_24h, change_7d, market_cap
 import fs from "fs/promises";
 
 /* ===================== Config listas ===================== */
