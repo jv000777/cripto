@@ -1,7 +1,8 @@
 {
   "name": "iXO · Cripto Monitor",
   "short_name": "iXO",
-  "start_url": "/cripto/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f1624",
   "theme_color": "#0f1624",
