@@ -4,6 +4,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <base href="/">
+<link rel="canonical" href="https://ixo.ar/">
+<meta name="description" content="iXO · Monitor cripto con precios en vivo, variaciones 24h/7d y market cap.">
+<meta name="theme-color" content="#0f1624">
+<link rel="apple-touch-icon" href="assets/A.PNG">
+
+<!-- SEO/OpenGraph/Twitter -->
+<meta property="og:title" content="iXO · Cripto Monitor">
+<meta property="og:description" content="Precios en vivo y variaciones.">
+<meta property="og:url" content="https://ixo.ar/">
+<meta property="og:image" content="https://ixo.ar/assets/A.PNG">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Performance -->
+<link rel="preconnect" href="https://api.coingecko.com">
+<link rel="preconnect" href="https://api.binance.com">
+<link rel="preconnect" href="https://www.okx.com">
+
+<!-- CSP básica -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: https:; script-src 'self' https://api.coingecko.com https://api.binance.com https://www.okx.com; connect-src https://api.coingecko.com https://api.binance.com https://www.okx.com; style-src 'self' 'unsafe-inline'; base-uri 'self'">
+
 <link rel="manifest" href="manifest.webmanifest">
 
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -76,25 +97,31 @@
 
 <body>
 <header>
-  <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
+  <div class="logoWrap" id="logoClick">
+    <picture>
+      <source srcset="assets/A.webp" type="image/webp">
+      <img class="logo" src="assets/A.PNG" alt="iXO">
+    </picture>
+  </div>
   <h1>iXO</h1>
 <p class="sub">Cripto · Monitor</p>
-  <p class="upd" id="update-time">Última actualización: —</p>
+  <p class="upd" id="update-time" aria-live="polite">Última actualización: —</p>
   <p class="frase">Cuando nada es seguro, todo es posible.</p>
 </header>
+<input id="q" placeholder="Buscar…" style="margin:8px 12px">
 
 <div class="wrap">
   <table id="t">
     <thead>
       <tr>
-        <th class="sortable" id="th-mc">
+        <th scope="col" class="sortable" id="th-mc">
           <span class="hdr">Activo / MC <span class="arrow" id="arr-mc"></span></span>
         </th>
-        <th class="num">Precio (USD)</th>
-        <th class="sortable num" id="th-24h">
+        <th scope="col" class="num">Precio (USD)</th>
+        <th scope="col" class="sortable num" id="th-24h">
           <span class="hdr right">24h <span class="arrow" id="arr-24h"></span></span>
         </th>
-        <th class="sortable num" id="th-7d">
+        <th scope="col" class="sortable num" id="th-7d">
           <span class="hdr right">7d <span class="arrow" id="arr-7d"></span></span>
         </th>
       </tr>
