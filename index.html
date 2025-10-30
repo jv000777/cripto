@@ -14,34 +14,6 @@
 <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32"/>
 
 <style>
-  <style>
-  :root{ --sb-l:64px; --sb-r:56px; --sbL-bg:#6f42c1; --sbR-bg:#00c1b4; }
-  /* deja espacio para las barras */
-  body{ padding-left:var(--sb-l); padding-right:var(--sb-r); }
-
-  /* sidebars fijas */
-  .sb-left, .sb-right{
-    position:fixed; top:0; bottom:0; width:var(--sb-l); display:flex;
-    flex-direction:column; gap:14px; align-items:center; padding:14px 10px;
-    z-index:999; box-shadow:0 0 0 1px rgba(0,0,0,.04) inset;
-  }
-  .sb-right{ right:0; left:auto; width:var(--sb-r); background:var(--sbR-bg); }
-  .sb-left{ left:0; right:auto; background:var(--sbL-bg); }
-
-  .sb-btn{
-    width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.15);
-    display:grid; place-items:center; color:#fff; font-size:18px; cursor:pointer;
-    transition:filter .15s ease;
-  }
-  .sb-btn:hover{ filter:brightness(1.1); }
-
-  /* responsive: ocultar barras en móviles */
-  @media (max-width: 900px){
-    body{ padding-left:12px; padding-right:12px; }
-    .sb-left,.sb-right{ display:none; }
-  }
-</style>
-
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
     --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
@@ -100,26 +72,41 @@
   .sq.green{background:rgba(34,197,94,.85);border-color:rgba(34,197,94,.55)}
   .sq.red{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.55)}
   .sq.gray{background:#3b445a}
+
+  /* ==== Barras laterales ==== */
+  :root{ --sb-l:64px; --sb-r:56px; --sbL-bg:#6f42c1; --sbR-bg:#00c1b4; }
+  body{ padding-left:var(--sb-l); padding-right:var(--sb-r); }
+  .sb-left,.sb-right{
+    position:fixed;top:0;bottom:0;display:flex;flex-direction:column;gap:14px;
+    align-items:center;padding:14px 10px;z-index:1000;box-shadow:0 0 0 1px rgba(0,0,0,.04) inset
+  }
+  .sb-left{ left:0;width:var(--sb-l);background:var(--sbL-bg) }
+  .sb-right{ right:0;width:var(--sb-r);background:var(--sbR-bg) }
+  .sb-btn{ width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);
+    display:grid;place-items:center;color:#fff;font-size:18px;cursor:pointer;transition:filter .15s }
+  .sb-btn:hover{ filter:brightness(1.1) }
+  @media (max-width:900px){
+    body{ padding-left:12px;padding-right:12px }
+    .sb-left,.sb-right{ display:none }
+  }
 </style>
-<script>
-  document.getElementById('refreshBtn')?.addEventListener('click', ()=> location.reload());
-</script>
 </head>
 
-
 <body>
+<div id="top"></div>
+
 <!-- Sidebar izquierda -->
 <nav class="sb-left" aria-label="Atajos">
-  <a class="sb-btn" href="/"><span>🏠</span></a>
-  <a class="sb-btn" href="/ui/index.html" title="UI"><span>🧩</span></a>
-  <a class="sb-btn" href="#precios" title="Precios"><span>$</span></a>
-  <a class="sb-btn" href="#top" title="Arriba"><span>⬆️</span></a>
+  <a class="sb-btn" href="/" title="Inicio">🏠</a>
+  <a class="sb-btn" href="/ui/index.html" title="UI">🧩</a>
+  <a class="sb-btn" href="#rows" title="Precios">💲</a>
+  <a class="sb-btn" href="#top" title="Arriba">⬆️</a>
 </nav>
 
 <!-- Sidebar derecha -->
 <aside class="sb-right" aria-label="Acciones">
   <button class="sb-btn" id="refreshBtn" title="Refrescar">⟳</button>
-  <a class="sb-btn" href="https://coingecko.com" target="_blank" title="CG">CG</a>
+  <a class="sb-btn" href="https://www.coingecko.com" target="_blank" title="CoinGecko">CG</a>
   <a class="sb-btn" href="https://coinmarketcap.com" target="_blank" title="CMC">CM</a>
 </aside>
 
@@ -128,7 +115,7 @@
 <header>
   <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
   <h1>iXO</h1>
-<p class="sub">Cripto · Monitor</p>
+  <p class="sub">Cripto · Monitor</p>
   <p class="upd" id="update-time">Última actualización: —</p>
   <p class="frase">Cuando nada es seguro, todo es posible.</p>
 </header>
@@ -519,6 +506,11 @@ render = function(){
 /** Capa inicial por si este bloque carga después del primer render */
 if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
 else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
+</script>
+
+<script>
+  /* Botón refrescar barra derecha */
+  document.getElementById('refreshBtn')?.addEventListener('click',()=>location.reload());
 </script>
 
 </body>
