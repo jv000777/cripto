@@ -14,6 +14,34 @@
 <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32"/>
 
 <style>
+  <style>
+  :root{ --sb-l:64px; --sb-r:56px; --sbL-bg:#6f42c1; --sbR-bg:#00c1b4; }
+  /* deja espacio para las barras */
+  body{ padding-left:var(--sb-l); padding-right:var(--sb-r); }
+
+  /* sidebars fijas */
+  .sb-left, .sb-right{
+    position:fixed; top:0; bottom:0; width:var(--sb-l); display:flex;
+    flex-direction:column; gap:14px; align-items:center; padding:14px 10px;
+    z-index:999; box-shadow:0 0 0 1px rgba(0,0,0,.04) inset;
+  }
+  .sb-right{ right:0; left:auto; width:var(--sb-r); background:var(--sbR-bg); }
+  .sb-left{ left:0; right:auto; background:var(--sbL-bg); }
+
+  .sb-btn{
+    width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.15);
+    display:grid; place-items:center; color:#fff; font-size:18px; cursor:pointer;
+    transition:filter .15s ease;
+  }
+  .sb-btn:hover{ filter:brightness(1.1); }
+
+  /* responsive: ocultar barras en móviles */
+  @media (max-width: 900px){
+    body{ padding-left:12px; padding-right:12px; }
+    .sb-left,.sb-right{ display:none; }
+  }
+</style>
+
   :root{
     --bg:#0f1624; --card:#1a2235; --head:#121a2b; --muted:#aeb6cf; --ink:#fff;
     --up:#22c55e; --down:#ef4444; --line:#2a3246; --max:980px; --pill:#233046;
