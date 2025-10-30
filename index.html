@@ -102,8 +102,26 @@
   .sq.gray{background:#3b445a}
 </style>
 </head>
+<script>
+  document.getElementById('refreshBtn')?.addEventListener('click', ()=> location.reload());
+</script>
 
 <body>
+<!-- Sidebar izquierda -->
+<nav class="sb-left" aria-label="Atajos">
+  <a class="sb-btn" href="/"><span>🏠</span></a>
+  <a class="sb-btn" href="/ui/index.html" title="UI"><span>🧩</span></a>
+  <a class="sb-btn" href="#precios" title="Precios"><span>$</span></a>
+  <a class="sb-btn" href="#top" title="Arriba"><span>⬆️</span></a>
+</nav>
+
+<!-- Sidebar derecha -->
+<aside class="sb-right" aria-label="Acciones">
+  <button class="sb-btn" id="refreshBtn" title="Refrescar">⟳</button>
+  <a class="sb-btn" href="https://coingecko.com" target="_blank" title="CG">CG</a>
+  <a class="sb-btn" href="https://coinmarketcap.com" target="_blank" title="CMC">CM</a>
+</aside>
+
 <a href="/ui/index.html">Abrir UI</a>
 
 <header>
