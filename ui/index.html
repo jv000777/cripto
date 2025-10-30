@@ -519,17 +519,7 @@
                 <h5 class="mb-2 text-titlecase mb-4">Status statistics</h5>
               <div class="row">
                 <div class="col-md-6 grid-margin stretch-card">
-                  <div class="card">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                      <div class="d-flex justify-content-between align-items-center mb-2">
-                        <p class="mb-0 text-muted">Transactions</p>
-                        <p class="mb-0 text-muted">+1.37%</p>
-                      </div>
-                      <h4>1352</h4>
-                      <canvas id="transactions-chart" class="mt-auto" height="65"></canvas>
-                    </div>
-                  </div>
-                </div>
+                 
                 <div class="col-md-6 grid-margin stretch-card">
                   <div class="card">
                     <div class="card-body d-flex flex-column justify-content-between">
@@ -586,25 +576,34 @@
               </div>
             </div>
             <div class="col-xl-6 grid-margin stretch-card flex-column">
-              <h5 class="mb-2 text-titlecase mb-4">Income statistics</h5>
-              <div class="row h-100">
-                <div class="col-md-12 stretch-card">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-start flex-wrap">
-                        <div>
-                          <p class="mb-3">Monthly Increase</p>
-                          <h3>67842</h3>
-                        </div>
-                        <div id="income-chart-legend" class="d-flex flex-wrap mt-1 mt-md-0"></div>
-                      </div>
-                      <canvas id="income-chart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
+  <h5 class="mb-2 text-titlecase mb-4">Precios Cripto</h5>
+  <div class="row h-100">
+    <div class="col-md-12 stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <section id="ixo-ui">
+            <div class="wrap">
+              <p class="upd" id="ixo-upd">Última actualización: —</p>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th id="ixo-th-mc">Activo / MC <span id="ixo-arr-mc"></span></th>
+                    <th class="text-right">Precio (USD)</th>
+                    <th id="ixo-th-24h" class="text-right">24h <span id="ixo-arr-24h"></span></th>
+                    <th id="ixo-th-7d" class="text-right">7d <span id="ixo-arr-7d"></span></th>
+                  </tr>
+                </thead>
+                <tbody id="ixo-rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+                <tfoot><tr><td colspan="4" id="ixo-more" class="text-center">MORE (+5)</td></tr></tfoot>
+              </table>
             </div>
-          </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
           <div class="row">
             <div class="col-xl-4 grid-margin stretch-card">
