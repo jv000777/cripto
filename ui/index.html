@@ -2,6 +2,17 @@
 <html lang="en">
 
 <head>
+  <style>
+  #ixo-ui .wrap{margin:0;padding:0}
+  #ixo-ui .upd{color:#6c7293;font-size:.9rem;margin:0 0 10px}
+  #ixo-ui table{width:100%}
+  #ixo-ui thead th{cursor:pointer;user-select:none}
+  #ixo-ui .text-right{text-align:right}
+  #ixo-ui .pill{display:inline-block;padding:4px 10px;border-radius:999px;min-width:74px;text-align:center;font-size:13px;background:#233046;color:#cfd5ff}
+  #ixo-ui .up{color:#22c55e;background:rgba(34,197,94,.15)}
+  #ixo-ui .down{color:#ef4444;background:rgba(239,68,68,.15)}
+  </style>
+
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -206,13 +217,34 @@
       <!-- partial:partials/_settings-panel.html -->
       <div class="theme-setting-wrapper">
         <div id="settings-trigger"><i class="typcn typcn-cog-outline"></i></div>
-        <div id="theme-settings" class="settings-panel">
           <i class="settings-close typcn typcn-times"></i>
+        <div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Precios Cripto</h4>
+
+    <section id="ixo-ui">
+      <div class="wrap">
+        <p class="upd" id="ixo-upd">Última actualización: —</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th id="ixo-th-mc">Activo / MC <span id="ixo-arr-mc"></span></th>
+              <th class="text-right">Precio (USD)</th>
+              <th id="ixo-th-24h" class="text-right">24h <span id="ixo-arr-24h"></span></th>
+              <th id="ixo-th-7d" class="text-right">7d <span id="ixo-arr-7d"></span></th>
+            </tr>
+          </thead>
+          <tbody id="ixo-rows"><tr><td colspan="4">Cargando…</td></tr></tbody>
+          <tfoot><tr><td colspan="4" id="ixo-more" class="text-center">MORE (+5)</td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
           <p class="settings-heading">SIDEBAR SKINS</p>
-          <div class="sidebar-bg-options selected" id="sidebar-light-theme"><div class="img-ss rounded-circle bg-light border mr-3"></div>Light</div>
           <div class="sidebar-bg-options" id="sidebar-dark-theme"><div class="img-ss rounded-circle bg-dark border mr-3"></div>Dark</div>
           <p class="settings-heading mt-2">HEADER SKINS</p>
-          <div class="color-tiles mx-0 px-4">
             <div class="tiles success"></div>
             <div class="tiles warning"></div>
             <div class="tiles danger"></div>
@@ -921,6 +953,42 @@
   <!-- Custom js for this page-->
   <script src="js/dashboard.js"></script>
   <!-- End custom js for this page-->
+  <script>
+(()=>{const EXCLUDE_IDS=new Set(["tether","usd-coin","dai","true-usd","pax-dollar","frax","usdd","first-digital-usd","usdp","binance-usd","gemini-dollar","staked-ether","wrapped-bitcoin","weth","rocket-pool-eth","frax-ether","ankreth","cbeth","sfrxeth","reth","frxeth"]);
+const nfUSD=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
+const nfPct=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
+const nfCompact=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',compactDisplay:'short',maximumFractionDigits:2});
+let FULL=[], shown=10, sortKey='market_cap', sortDir='desc';
+async function fetchLive(){const url='https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false&price_change_percentage=24h,7d';
+ const r=await fetch(url,{cache:'no-store',headers:{accept:'application/json'}}); if(!r.ok) throw new Error('CG '+r.status);
+ const j=await r.json(); FULL=j.filter(c=>c&&c.id&&!EXCLUDE_IDS.has(c.id.toLowerCase())).map(c=>({id:c.id,name:c.name,symbol:(c.symbol||'').toUpperCase(),
+ usd:c.current_price??null,change_24h:c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? null,
+ change_7d:c.price_change_percentage_7d_in_currency ?? null,market_cap:c.market_cap??null}))
+ .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));
+ document.getElementById('ixo-upd').textContent='Última actualización: '+new Date().toLocaleString();}
+async function fetchSnapshot(){const r=await fetch('/data/snapshot.json?ts='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('snapshot '+r.status);
+ const j=await r.json(); document.getElementById('ixo-upd').textContent='Última actualización: '+(j.updated_at?new Date(j.updated_at).toLocaleString():'—');
+ FULL=Object.entries(j.assets||{}).map(([sym,x])=>({...x,symbol:x.symbol||sym})).filter(x=>x.id&&!EXCLUDE_IDS.has(x.id.toLowerCase()))
+ .sort((a,b)=>(b.market_cap??0)-(a.market_cap??0));}
+function getVal(x,k){if(k==='market_cap')return +x.market_cap||NaN; if(k==='change_24h')return +x.change_24h||NaN; if(k==='change_7d')return +x.change_7d||NaN; return NaN;}
+function cmp(a,b){const va=getVal(a,sortKey),vb=getVal(b,sortKey);const na=Number.isNaN(va),nb=Number.isNaN(vb); if(na&&nb)return 0; if(na)return 1; if(nb)return -1; return sortDir==='desc'?(vb-va):(va-vb);}
+function updateArrows(){document.getElementById('ixo-arr-mc').textContent=(sortKey==='market_cap')?(sortDir==='desc'?'↓':'↑'):'';document.getElementById('ixo-arr-24h').textContent=(sortKey==='change_24h')?(sortDir==='desc'?'↓':'↑'):'';document.getElementById('ixo-arr-7d').textContent=(sortKey==='change_7d')?(sortDir==='desc'?'↓':'↑'):'';}
+function render(){const tbody=document.getElementById('ixo-rows'); tbody.innerHTML=''; const list=[...FULL].sort(cmp).slice(0,shown);
+ for(const x of list){const price=x.usd!=null?nfUSD.format(x.usd):'—'; const c24=typeof x.change_24h==='number'?nfPct.format(x.change_24h)+'%':'—';
+ const c7=typeof x.change_7d==='number'?nfPct.format(x.change_7d)+'%':'—'; const cls24=typeof x.change_24h==='number'?(x.change_24h>=0?'pill up':'pill down'):'pill';
+ const cls7=typeof x.change_7d==='number'?(x.change_7d>=0?'pill up':'pill down'):'pill'; const mcShort=x.market_cap!=null?nfCompact.format(x.market_cap):'—'; const name=x.name||x.id||x.symbol||'';
+ tbody.insertAdjacentHTML('beforeend',`<tr><td><strong>${name} <span class="text-muted">(${x.symbol||''})</span></strong><br><small class="text-muted">· MC ${mcShort}</small></td><td class="text-right">${price}</td><td class="text-right"><span class="${cls24}">${c24}</span></td><td class="text-right"><span class="${cls7}">${c7}</span></td></tr>`);}
+ const mb=document.getElementById('ixo-more'); const remaining=Math.max((FULL.length-shown),0); mb.textContent=remaining>0?`MORE (+${Math.min(5,remaining)})`:'LESS (top-10)'; updateArrows();}
+function setSort(k){if(sortKey===k) sortDir=(sortDir==='desc')?'asc':'desc'; else {sortKey=k;sortDir='desc';} render();}
+document.getElementById('ixo-th-mc').addEventListener('click',()=>setSort('market_cap'));
+document.getElementById('ixo-th-24h').addEventListener('click',()=>setSort('change_24h'));
+document.getElementById('ixo-th-7d').addEventListener('click',()=>setSort('change_7d'));
+document.getElementById('ixo-more').addEventListener('click',()=>{shown=(shown>=FULL.length)?10:Math.min(FULL.length,shown+5);render();});
+async function refresh(){try{await fetchLive();}catch(_){try{await fetchSnapshot();}catch(__){document.getElementById('ixo-rows').innerHTML='<tr><td colspan="4">Error al cargar</td></tr>'; return;}} render();}
+refresh(); setInterval(refresh,30000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
+})();
+</script>
+
 </body>
 
 </html>
