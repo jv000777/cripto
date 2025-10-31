@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>iXO · Cripto Monitor</title>
+<title>iXO ·¥· Cripto Monitor</title>
 <link rel="icon" type="image/png" href="assets/favicon.png" sizes="32x32"/>
 
 <style>
@@ -73,44 +73,49 @@
   .sq.red{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.55)}
   .sq.gray{background:#3b445a}
 
-  /* ==== Barras laterales ==== */
-  :root{ --sb-l:64px; --sb-r:56px; --sbL-bg:#6f42c1; --sbR-bg:#00c1b4; }
-  body{ padding-left:var(--sb-l); padding-right:var(--sb-r); }
-  .sb-left,.sb-right{
-    position:fixed;top:0;bottom:0;display:flex;flex-direction:column;gap:14px;
-    align-items:center;padding:14px 10px;z-index:1000;box-shadow:0 0 0 1px rgba(0,0,0,.04) inset
+  /* ====== Sidebars fijas para /cripto ====== */
+  .sidebar{
+    position:fixed; z-index:50; top:140px; bottom:20px;
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px; overflow:auto; box-shadow:0 6px 18px rgba(0,0,0,.25);
   }
-  .sb-left{ left:0;width:var(--sb-l);background:var(--sbL-bg) }
-  .sb-right{ right:0;width:var(--sb-r);background:var(--sbR-bg) }
-  .sb-btn{ width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);
-    display:grid;place-items:center;color:#fff;font-size:18px;cursor:pointer;transition:filter .15s }
-  .sb-btn:hover{ filter:brightness(1.1) }
-  @media (max-width:900px){
-    body{ padding-left:12px;padding-right:12px }
-    .sb-left,.sb-right{ display:none }
+  .sidebar-left{left:16px; width:220px;}
+  .sidebar-right{right:16px; width:260px;}
+  .sidebar h3{margin:0 0 10px; font-size:16px; color:#cfd5ff}
+  .sidebar .muted{color:#aab3d1; font-size:13px; line-height:1.4}
+  .sidebar nav a{display:block; padding:8px 10px; margin:4px 0; border-radius:10px; color:#cfd5ff; text-decoration:none; background:#1b2437}
+  .sidebar nav a:hover{filter:brightness(1.1)}
+
+  /* Reservar espacio para que el contenido no quede debajo de las sidebars */
+  body.has-sidebars .wrap{max-width:var(--max)}
+  @media (min-width:1200px){
+    body.has-sidebars{padding-left:260px; padding-right:300px;}
+  }
+  @media (max-width:1199px){
+    .sidebar{display:none}
+    body.has-sidebars{padding:0}
   }
 </style>
 </head>
 
-<body>
-<div id="top"></div>
-
-<!-- Sidebar izquierda -->
-<nav class="sb-left" aria-label="Atajos">
-  <a class="sb-btn" href="/" title="Inicio">🏠</a>
-  <a class="sb-btn" href="/ui/index.html" title="UI">🧩</a>
-  <a class="sb-btn" href="#rows" title="Precios">💲</a>
-  <a class="sb-btn" href="#top" title="Arriba">⬆️</a>
-</nav>
-
-<!-- Sidebar derecha -->
-<aside class="sb-right" aria-label="Acciones">
-  <button class="sb-btn" id="refreshBtn" title="Refrescar">⟳</button>
-  <a class="sb-btn" href="https://www.coingecko.com" target="_blank" title="CoinGecko">CG</a>
-  <a class="sb-btn" href="https://coinmarketcap.com" target="_blank" title="CMC">CM</a>
+<body class="has-sidebars">
+<!-- Sidebars -->
+<aside class="sidebar sidebar-left">
+  <h3>iXO · Panel</h3>
+  <nav>
+    <a href="/">Portada</a>
+    <a href="#top">Top-10</a>
+    <a href="#ordenar">Ordenar por 24h/7d</a>
+  </nav>
+  <p class="muted">A futuro: accesos a bots, billetera fría, alerts y reportes.</p>
 </aside>
 
-<header>
+<aside class="sidebar sidebar-right">
+  <h3>Notas rápidas</h3>
+  <p class="muted">Aquí vas a poder poner widgets (p.ej. “Eventos 7d”, “Unlocks”, “Reglas iXO”).</p>
+</aside>
+
+<header id="top">
   <div class="logoWrap" id="logoClick"><img class="logo" src="assets/A.PNG" alt="iXO" /></div>
   <h1>iXO</h1>
   <p class="sub">Cripto · Monitor</p>
@@ -504,11 +509,6 @@ render = function(){
 /** Capa inicial por si este bloque carga después del primer render */
 if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
 else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
-</script>
-
-<script>
-  /* Botón refrescar barra derecha */
-  document.getElementById('refreshBtn')?.addEventListener('click',()=>location.reload());
 </script>
 
 </body>
