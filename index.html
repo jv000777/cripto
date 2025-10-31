@@ -79,8 +79,9 @@
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:12px; overflow:auto; box-shadow:0 6px 18px rgba(0,0,0,.25);
   }
-  .sidebar-left{left:16px; width:220px;}
-  .sidebar-right{right:16px; width:260px;}
+  
+  .sidebar-left{left:16px; width:100px;}
+  .sidebar-right{right:16px; width:100px;}
   .sidebar h3{margin:0 0 10px; font-size:16px; color:#cfd5ff}
   .sidebar .muted{color:#aab3d1; font-size:13px; line-height:1.4}
   .sidebar nav a{display:block; padding:8px 10px; margin:4px 0; border-radius:10px; color:#cfd5ff; text-decoration:none; background:#1b2437}
@@ -89,7 +90,7 @@
   /* Reservar espacio para que el contenido no quede debajo de las sidebars */
   body.has-sidebars .wrap{max-width:var(--max)}
   @media (min-width:1200px){
-    body.has-sidebars{padding-left:260px; padding-right:300px;}
+    body.has-sidebars{padding-left:150px; padding-right:150px;}
   }
   @media (max-width:1199px){
     .sidebar{display:none}
@@ -101,7 +102,7 @@
 <body class="has-sidebars">
 <!-- Sidebars -->
 <aside class="sidebar sidebar-left">
-  <h3>iXO · Panel</h3>
+  <h3>Panel</h3>
   <nav>
     <a href="/">Portada</a>
     <a href="#top">Top-10</a>
