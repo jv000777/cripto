@@ -10,17 +10,31 @@
   <meta http-equiv="Expires" content="0">
   <title>iXO ·¥· Cripto Monitor</title>
 
-  <!-- Favicon principal -->
-  <link rel="icon" type="image/png" href="assets/favicon-copilot.png">
+  <!-- Favicons por tema -->
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="/cripto/assets/favicon-dark-32.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="/cripto/assets/favicon-light-32.png" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="/cripto/assets/favicon-dark-16.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="/cripto/assets/favicon-light-16.png" media="(prefers-color-scheme: dark)">
 
-  <!-- Alternativas para compatibilidad -->
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-copilot.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-copilot.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon-copilot.png">
+  <!-- Fallback si el navegador no soporta media en favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/cripto/assets/favicon-light-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/cripto/assets/favicon-light-16.png">
 
-  <!-- Manifest -->
-  <link rel="manifest" href="manifest.webmanifest">
+  <!-- Apple (iOS no soporta media) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/cripto/assets/apple-touch-icon-light.png">
+
+  <!-- (Opcional) Colorea barra del navegador según tema -->
+  <meta name="theme-color" content="#0f1624" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+  <!-- Manifest único; define los 192/512 allí -->
+  <link rel="manifest" href="/cripto/manifest.webmanifest">
 </head>
+
 
 
 <style>
