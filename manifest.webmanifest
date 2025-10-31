@@ -7,7 +7,7 @@
   "background_color": "#0f1624",
   "theme_color": "#0f1624",
   "icons": [
-    { "src": "assets/A.PNG", "sizes": "78x78", "type": "image/png" },
-    { "src": "assets/favicon.PNG", "sizes": "32x32", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/cripto/assets/android-chrome-192x192-light.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/cripto/assets/android-chrome-512x512-light.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
