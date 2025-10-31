@@ -11,6 +11,14 @@
   #ixo-ui .pill{display:inline-block;padding:4px 10px;border-radius:999px;min-width:74px;text-align:center;font-size:12px;background:#233046;color:#cfd5ff}
   #ixo-ui .up{color:#22c55e;background:rgba(34,197,94,.15)}
   #ixo-ui .down{color:#ef4444;background:rgba(239,68,68,.15)}
+  [13]  #ixo-ui .down{color:#ef4444;background:rgba(239,68,68,.15)}
+  [13a] /* Card de precios: no empuja el layout */
+  [13b] #ixo-precios .table-responsive{
+  [13c]   max-height: calc(100vh - 280px);
+  [13d]   overflow: auto;
+  [13e] }
+  [13f] #ixo-precios .card-body{padding: 1rem;}
+  [14]  </style>
 
   /* Limitar alto del card cripto para no empujar el layout */
   #ixo-card{max-height:620px; overflow:auto;}
