@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -79,14 +80,8 @@
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:12px; overflow:auto; box-shadow:0 6px 18px rgba(0,0,0,.25);
   }
-  
-  :root { --sb: 240px; --gap: 40px; } /* ancho sidebar y margen de seguridad */
-  .sidebar-left{ width: var(--sb); }
-  .sidebar-right{ width: var(--sb); }
-  body.has-sidebars{
-    padding-left:  calc(var(--sb) + var(--gap));
-    padding-right: calc(var(--sb) + var(--gap));
-  }
+  .sidebar-left{left:16px; width:220px;}
+  .sidebar-right{right:16px; width:260px;}
   .sidebar h3{margin:0 0 10px; font-size:16px; color:#cfd5ff}
   .sidebar .muted{color:#aab3d1; font-size:13px; line-height:1.4}
   .sidebar nav a{display:block; padding:8px 10px; margin:4px 0; border-radius:10px; color:#cfd5ff; text-decoration:none; background:#1b2437}
@@ -95,7 +90,7 @@
   /* Reservar espacio para que el contenido no quede debajo de las sidebars */
   body.has-sidebars .wrap{max-width:var(--max)}
   @media (min-width:1200px){
-    body.has-sidebars{padding-left:150px; padding-right:150px;}
+    body.has-sidebars{padding-left:260px; padding-right:300px;}
   }
   @media (max-width:1199px){
     .sidebar{display:none}
@@ -107,10 +102,10 @@
 <body class="has-sidebars">
 <!-- Sidebars -->
 <aside class="sidebar sidebar-left">
-  <h3>Panel</h3>
+  <h3>iXO · Panel</h3>
   <nav>
     <a href="/">Portada</a>
-    <a href="#top">Portada B</a>
+    <a href="#top">Top-10</a>
     <a href="#ordenar">Ordenar por 24h/7d</a>
   </nav>
   <p class="muted">A futuro: accesos a bots, billetera fría, alerts y reportes.</p>
