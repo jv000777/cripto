@@ -1,3 +1,13 @@
+.topper {
+  padding: 12px 20px;
+}
+.topper {
+  transition: all 0.3s ease-in-out;
+}
+.brand img {
+  max-height: 32px;
+  width: auto;
+}
 .topbar {
   display: flex;
   align-items: center;
