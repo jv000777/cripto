@@ -7,7 +7,7 @@
   "background_color": "#0f1624",
   "theme_color": "#0f1624",
   "icons": [
-    { "src": "/cripto/assets/android-chrome-192x192-light.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/cripto/assets/android-chrome-512x512-light.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/cripto/assets/favicon-copilot.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/cripto/assets/favicon-copilot.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
