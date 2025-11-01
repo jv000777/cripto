@@ -1,0 +1,28 @@
+name: SiteOps Deploy
+
+on:
+  repository_dispatch:
+    types: [siteops-deploy]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Modificar style.css (reset)
+        run: |
+          sed -i '/html, body {/{
+            N
+            s/margin: 0;/margin: 0;\n  padding: 0;\n  line-height: 1.5;\n  -webkit-text-size-adjust: 100%;/
+          }' data/style.css
+
+      - name: Commit & Push
+        run: |
+          git config user.name "siteops-bot"
+          git config user.email "siteops@ixo.ar"
+          git add data/style.css
+          git commit -m "Fix: reset CSS mejorado (padding + line-height)"
+          git push origin main
