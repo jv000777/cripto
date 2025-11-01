@@ -53,14 +53,19 @@ html,body{
 }
 
 /* ===== Encabezado principal ===== */
-header{
-  width:100%;
-  box-sizing:border-box;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:22px 20px 8px;
+header#top {
+  text-align: center;
+  padding: 22px 0 8px;
 }
+header:not(#top) {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px 8px;
+}
+
 header::after{
   content:"";
   display:block;
