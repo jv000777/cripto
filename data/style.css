@@ -1,48 +1,3 @@
-.topper {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.topper {
-  transition: all 0.3s ease-in-out;
-}
-.brand img {
-  max-height: 32px;
-  width: auto;
-}
-.topbar {
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  background-color: var(--card);
-  border-bottom: 1px solid var(--ink);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  font-size: 1.2em;
-  color: var(--ink);
-}
-
-.brand img {
-  height: 24px;
-  width: auto;
-}
-Excelente, Francisco. Ya tengo las tres partes completas de tu `index.html`, y ahora puedo ayudarte a **migrar todo el CSS embebido** al archivo externo `data/style.css`.
-
----
-
-## ✅ CSS para agregar a `data/style.css`
-
-Copiá y pegá este bloque completo al final de tu archivo `data/style.css`. Ya está organizado por secciones para facilitar mantenimiento:
-
-```css
 /* ===== Variables globales ===== */
 :root {
   --bg: #0f1624;
@@ -91,6 +46,9 @@ header::after {
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
 }
 
 /* ===== Branding ===== */
@@ -103,7 +61,8 @@ header::after {
   color: var(--ink);
 }
 .brand img {
-  height: 40px;
+  height: 32px;
+  width: auto;
   margin-right: 10px;
 }
 
@@ -357,28 +316,3 @@ footer {
   margin: 4px 0;
   border-radius: 10px;
   color: #cfd5ff;
-  text-decoration: none;
-  background: #1b2437;
-}
-.sidebar nav a:hover {
-  filter: brightness(1.1);
-}
-
-/* Reservar espacio para que el contenido no quede debajo de las sidebars */
-body.has-sidebars .wrap {
-  max-width: var(--max);
-}
-@media (min-width: 1200px) {
-  body.has-sidebars {
-    padding-left: 260px;
-    padding-right: 300px;
-  }
-}
-@media (max-width: 1199px) {
-  .sidebar {
-    display: none;
-  }
-  body.has-sidebars {
-    padding: 0;
-  }
-}
