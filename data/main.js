@@ -55,6 +55,8 @@ async function fetchLive(){
 }
 
 async function fetchSnapshot(){
+  const res = await fetch('/data/snapshot.json?ts=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('snapshot HTTP ' + res.status);
   const text = await res.text();
   const j = JSON.parse(text);
   document.getElementById('update-time').textContent =
