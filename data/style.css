@@ -359,3 +359,26 @@ footer {
   color: #cfd5ff;
   text-decoration: none;
   background: #1b2437;
+}
+.sidebar nav a:hover {
+  filter: brightness(1.1);
+}
+
+/* Reservar espacio para que el contenido no quede debajo de las sidebars */
+body.has-sidebars .wrap {
+  max-width: var(--max);
+}
+@media (min-width: 1200px) {
+  body.has-sidebars {
+    padding-left: 260px;
+    padding-right: 300px;
+  }
+}
+@media (max-width: 1199px) {
+  .sidebar {
+    display: none;
+  }
+  body.has-sidebars {
+    padding: 0;
+  }
+}
