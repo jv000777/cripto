@@ -1,4 +1,3 @@
-<script>
 /* ---------- FORMATTERS ---------- */
 const nfUSD = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:6});
 const nfPct = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2,signDisplay:'exceptZero'});
@@ -56,9 +55,8 @@ async function fetchLive(){
 }
 
 async function fetchSnapshot(){
-  const res = await fetch('/data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
-  if (!res.ok) throw new Error('snapshot HTTP '+res.status);
-  const j = await res.json();
+  const text = await res.text();
+  const j = JSON.parse(text);
   document.getElementById('update-time').textContent =
     'Última actualización: ' + (j.updated_at ? new Date(j.updated_at).toLocaleString() : '—');
 
@@ -181,11 +179,8 @@ document.getElementById('logoClick').addEventListener('click', function(){
 document.getElementById('imageModal').addEventListener('click', function(){
   this.style.display = 'none';
 });
-</script>
 
-<script>
 /* === MINI-TFs DINÁMICO · %K lento (8,2,3) · UMBRAL 15/85 · Binance→OKX · sin parpadeo === */
-
 /** Pares especiales si el ticker difiere */
 function getPairFromSymbol(sym){
   const manual = {
@@ -353,4 +348,3 @@ render = function(){
 /** Capa inicial por si este bloque carga después del primer render */
 if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
 else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
-</script>
