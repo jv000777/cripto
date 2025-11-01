@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="es">
 <head>
@@ -11,42 +10,29 @@
   <meta http-equiv="Expires" content="0">
   <title>iXO · Cripto Monitor</title>
 
-  <!-- Favicon principal -->
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/a.png">
 
-  <!-- Alternativas para compatibilidad -->
+  <!-- Apple & Metadata -->
   <link rel="icon" type="image/png" sizes="32x32" href="assets/a.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/a.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/a.png">
 
   <!-- Manifest -->
   <link rel="manifest" href="manifest.webmanifest">
-  
-  <!-- Seguridad: Cabeceras HTTP vía meta -->
+
+  <!-- Seguridad -->
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <meta http-equiv="X-Frame-Options" content="DENY">
-  <meta http-equiv="Content-Security-Policy" content="
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.coingecko.com https://www.okx.com https://api.binance.com; object-src 'none'; base-uri 'self';">
+
+  <!-- Cargar script JS correctamente -->
   <script src="data/main.js" defer></script>
-  <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self';
-        style-src 'self';
-        img-src 'self' data:;
-        connect-src 'self' https://api.coingecko.com https://www.okx.com https://api.binance.com;
-        object-src 'none';
-        base-uri 'self';
-">
-
-
 </head>
 
-
-
-  
 <body class="has-sidebars">
-<!-- Sidebars -->
 <aside class="sidebar sidebar-left">
   <h3>iXO · Panel</h3>
   <nav>
@@ -54,7 +40,7 @@
     <a href="#top">Top-10</a>
     <a href="#ordenar">Ordenar por 24h/7d</a>
   </nav>
-  <p class="muted">A futuro: accesos a bots, billetera fría, alerts y reportes.</p>
+  <p class="muted">A futuro: accesos a bots, billetera, alerts y reportes.</p>
 </aside>
 
 <aside class="sidebar sidebar-right">
@@ -78,8 +64,8 @@
           <span class="hdr">Activo / MC <span class="arrow" id="arr-mc"></span></span>
         </th>
         <th class="num">Precio (USD)</th>
-        <th class="sortable num" id="th-24h">
-          <span class="hdr right">24h <span class="arrow" id="arr-24h"></span></span>
+        <th class="sortable num" id="th-24">
+          <span class="hdr right">24h <span class="arrow" id="arr-24"></span></span>
         </th>
         <th class="sortable num" id="th-7d">
           <span class="hdr right">7d <span class="arrow" id="arr-7d"></span></span>
