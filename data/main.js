@@ -354,4 +354,3 @@ render = function(){
 if (document.readyState !== 'loading') setTimeout(()=>paintAllVisibleRows(), 300);
 else document.addEventListener('DOMContentLoaded', ()=>setTimeout(()=>paintAllVisibleRows(), 300));
 </script>
-
