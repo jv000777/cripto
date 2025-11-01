@@ -134,7 +134,8 @@ async function main() {
     updated_at: new Date().toISOString(),
     meta: { included_ids: wanted, wallet_resolved: walletRes, missing, ambiguous },
     assets
-  }, null, 2));
+  }, null, 2), 'utf8');  // 👈 AÑADIDO
+
 
   console.log(`OK: ${Object.keys(assets).length} activos. missing=${missing.length} ambiguous=${ambiguous.length}`);
 }
