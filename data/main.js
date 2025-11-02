@@ -56,16 +56,15 @@ async function fetchLive(){
 
 async function fetchSnapshot(){
   const res = await fetch('/data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
-  if (!res.ok) throw new Error('snapshot HTTP ' + res.status);
-
-  const j = await res.json(); // ✅ directamente parseado
+  if (!res.ok) throw new Error('snapshot HTTP '+res.status);
+  const j = await res.json();
   document.getElementById('update-time').textContent =
     'Última actualización: ' + (j.updated_at ? new Date(j.updated_at).toLocaleString() : '—');
 
   FULL = Object.entries(j.assets || {})
     .map(([sym, x]) => ({ ...x, symbol: x.symbol || sym }))
     .filter(x => x.id && !EXCLUDE_IDS.has(x.id.toLowerCase()))
-    .sort((a,b)=> (b.market_cap ?? 0) - (a.market_cap ?? 0));
+    .sort((a,b)=> (b.market_cap??0)-(a.market_cap??0));
 }
 
 function setSort(key){
