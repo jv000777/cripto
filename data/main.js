@@ -53,7 +53,6 @@ async function fetchLive(){
 
   document.getElementById('update-time').textContent = 'Última actualización: ' + new Date().toLocaleString();
 }
-
 async function fetchSnapshot(){
   const res = await fetch('/data/snapshot.json?ts=' + Date.now(), { cache:'no-store' });
   if (!res.ok) throw new Error('snapshot HTTP '+res.status);
