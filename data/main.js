@@ -145,10 +145,14 @@ function render(){
 }
 
 async function refresh(){
-  try{ await fetchLive(); }
-  catch(e){
-    console.warn('Live CG falló, uso snapshot:', e);
-    try{ await fetchSnapshot(); }catch(e2){
+  try {
+    await fetchLive();
+    if (!FULL || FULL.length === 0) throw new Error('Live CG vacío');
+  } catch(e) {
+    console.warn('Live CG falló o vacío, uso snapshot:', e);
+    try {
+      await fetchSnapshot();
+    } catch(e2) {
       console.error('Snapshot también falló:', e2);
       document.getElementById('rows').innerHTML = '<tr><td colspan="4">Error al cargar</td></tr>';
       return;
