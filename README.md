@@ -1,4 +1,4 @@
-# jv000777/chatgpt
+# jv000777/cripto
 
 Repositorio de configuración y preferencias para el asistente iXO SiteOps (ChatGPT personalizado).
 
