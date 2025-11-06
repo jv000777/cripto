@@ -198,10 +198,13 @@ footer{
   display: flex;
   flex-direction: column;
   align-items: center;
+
 }
 
 .sidebar-left nav a {
   text-align: center;
+  width: 100%; /* o un ancho fijo como 160px si querés más control */
+  max-width: 180px;
 }
 
 }
