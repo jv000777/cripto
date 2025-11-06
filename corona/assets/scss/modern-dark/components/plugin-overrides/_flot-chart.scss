@@ -1,0 +1,50 @@
+/* Flot chart */
+
+.flot-chart-container {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  max-height: 100%;
+}
+
+.flot-chart {
+  width: 100%;
+  position: relative;
+
+  canvas {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+
+  max-width: none;
+  height: 400px;
+}
+
+
+.pieLabel div {
+  color: $gray !important;
+}
+
+
+.flot-x-axis text,
+.flot-y-axis text {
+  color: #ccc !important;
+}
+
+.flot-svg {
+  .flot-x-axis {
+    .tickLabel {
+      fill: #6c7293;
+      font-size: 13px;
+    }
+  }
+
+  .flot-y-axis {
+    .tickLabel {
+      fill: #6c7293;
+      font-size: 13px;
+    }
+  }
+}
