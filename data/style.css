@@ -190,6 +190,20 @@ footer{
 .sidebar nav a{
   display:block; padding:8px 10px; margin:4px 0; border-radius:10px;
   color:#cfd5ff; text-decoration:none; background:#1b2437;
+.sidebar-left {
+  text-align: center;
+}
+
+.sidebar-left nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-left nav a {
+  text-align: center;
+}
+
 }
 .sidebar nav a:hover{ filter:brightness(1.1); }
 
